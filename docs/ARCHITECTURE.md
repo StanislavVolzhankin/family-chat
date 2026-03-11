@@ -332,8 +332,9 @@ Family Chat — веб‑приложение для семейного текс
 
 ## 8. Deployment Overview
 
-- Backend (Laravel API + WebSocket компонент) и PostgreSQL размещаются на выбранном бесплатном облачном сервисе.
-- Frontend (React build) деплоится как статический сайт (на том же или другом сервисе).
+- Backend (Laravel API + WebSocket компонент) и PostgreSQL размещаются на **Fly.io** (бесплатный tier, Docker-based).
+- Frontend (React build) деплоится как статический сайт на **Vercel** (бесплатно).
+- Деплой построен на Docker: backend упакован в контейнер, конфигурация через `fly.toml`.
 - В первой итерации:
   - Все backend‑модули (Auth/Users, Chat/Messages, Localization, WebSocket‑gateway) живут в одном Laravel‑приложении (модульный монолит).
 - В дальнейшем возможно:
