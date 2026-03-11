@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+/frontend/dist
+/frontend/build
+/backend/public/hot
+/backend/public/storage
+/backend/storage/*.key
+
+# Logs
+*.log
+/backend/storage/logs
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
