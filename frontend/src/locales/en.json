@@ -1,0 +1,26 @@
+{
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign In",
+    "error": "Invalid username or password"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "status": {
+      "online": "Online",
+      "reconnecting": "Reconnecting...",
+      "offline": "Unavailable"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "create": "Create User"
+  },
+  "errors": {
+    "service_unavailable": "Service temporarily unavailable, please try again later"
+  }
+}
