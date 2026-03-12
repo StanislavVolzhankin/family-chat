@@ -142,11 +142,11 @@ function ParentRoute({ element }) {
 
 ## Порядок реализации
 
-1. **Backend**: UserService → UserController → Middleware → Роуты → Тесты
-2. **Frontend**: api.js (функции) → ParentRoute → UserManagementPage → Локализация → Тесты
-3. **QA**: прогон тест-кейсов
-4. **Reviewer**: финальное ревью
-5. **Commit + PR** в develop
+- **M2.1** Backend API (UserService, UserController, роуты) — ✅ done
+- **M2.2** Middleware (JWT + ParentOnly) — в процессе
+- **M2.3** Frontend API-слой (getUsers, createUser, updateUser)
+- **M2.4** Frontend UI (ParentRoute, UserManagementPage, локализация)
+- QA + Reviewer + PR в develop
 
 ---
 
