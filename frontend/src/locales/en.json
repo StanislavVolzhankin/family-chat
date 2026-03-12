@@ -4,7 +4,10 @@
     "username": "Username",
     "password": "Password",
     "submit": "Sign In",
-    "error": "Invalid username or password"
+    "errors": {
+      "invalid_credentials": "Invalid username or password",
+      "user_inactive": "Your account is disabled"
+    }
   },
   "chat": {
     "title": "Chat",
