@@ -19,5 +19,16 @@ class User extends Authenticatable
         'password_hash',
     ];
 
-    // TODO: add relationships and accessors (Milestone 1+)
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Laravel's Auth system expects getAuthPassword() to return the hashed password.
+     * Our column is named password_hash instead of the default password.
+     */
+    public function getAuthPassword(): string
+    {
+        return $this->password_hash;
+    }
 }

@@ -1,18 +1,30 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { LangProvider } from './context/LangContext'
+import { isAuthenticated } from './utils/auth'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import UserManagementPage from './pages/UserManagementPage'
 
+function PrivateRoute({ element }) {
+  return isAuthenticated() ? element : <Navigate to="/login" replace />
+}
+
+function PublicRoute({ element }) {
+  return isAuthenticated() ? <Navigate to="/chat" replace /> : element
+}
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/users" element={<UserManagementPage />} />
-      </Routes>
-    </BrowserRouter>
+    <LangProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<PublicRoute element={<LoginPage />} />} />
+          <Route path="/chat" element={<PrivateRoute element={<ChatPage />} />} />
+          <Route path="/users" element={<PrivateRoute element={<UserManagementPage />} />} />
+        </Routes>
+      </BrowserRouter>
+    </LangProvider>
   )
 }
 
