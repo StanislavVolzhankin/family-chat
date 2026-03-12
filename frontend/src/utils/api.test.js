@@ -9,7 +9,7 @@ describe('api utils', () => {
     it('makes a POST request to /api/auth/login with correct body and headers', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ token: 'tok-1', user: { id: 1, username: 'alice' } }),
+        json: async () => ({ data: { token: 'tok-1', user: { id: 1, username: 'alice' } } }),
       })
       vi.stubGlobal('fetch', fetchMock)
 
@@ -23,16 +23,16 @@ describe('api utils', () => {
       expect(JSON.parse(options.body)).toEqual({ username: 'alice', password: 'secret' })
     })
 
-    it('returns response data on a successful (2xx) response', async () => {
-      const payload = { token: 'tok-ok', user: { id: 1, username: 'alice', role: 'child' } }
+    it('returns the unwrapped data payload on a successful (2xx) response', async () => {
+      const inner = { token: 'tok-ok', user: { id: 1, username: 'alice', role: 'child' } }
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => payload,
+        json: async () => ({ data: inner }),
       }))
 
       const result = await login('alice', 'secret')
 
-      expect(result).toEqual(payload)
+      expect(result).toEqual(inner)
     })
 
     it('throws an Error with the server error code on a failed (4xx) response', async () => {
@@ -55,13 +55,13 @@ describe('api utils', () => {
 
     it('does not throw on a successful response even if a body field named error exists', async () => {
       // Defensive: ok:true should always return data, not throw
-      const payload = { token: 'tok-2', user: { id: 2, username: 'bob' } }
+      const inner = { token: 'tok-2', user: { id: 2, username: 'bob' } }
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => payload,
+        json: async () => ({ data: inner }),
       }))
 
-      await expect(login('bob', 'pass')).resolves.toEqual(payload)
+      await expect(login('bob', 'pass')).resolves.toEqual(inner)
     })
   })
 })

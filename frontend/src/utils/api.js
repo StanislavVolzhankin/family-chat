@@ -13,5 +13,5 @@ export async function login(username, password) {
     throw new Error(data.error ?? 'server_error')
   }
 
-  return data
+  return data.data
 }
