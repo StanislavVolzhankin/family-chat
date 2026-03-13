@@ -91,6 +91,7 @@ function UserManagementPage() {
             value={createPassword}
             onChange={e => setCreatePassword(e.target.value)}
             required
+            minLength={6}
             className={styles.input}
           />
           <button type="submit" disabled={creating} className={styles.button}>
@@ -131,6 +132,7 @@ function UserManagementPage() {
                             placeholder={t.users.new_password}
                             value={newPassword}
                             onChange={e => setNewPassword(e.target.value)}
+                            minLength={6}
                             className={styles.input}
                           />
                           <button onClick={() => handleChangePassword(user.id)} className={styles.actionButton}>
