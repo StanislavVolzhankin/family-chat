@@ -1,4 +1,4 @@
-import { login, getUsers, createUser, updateUser } from './api'
+import { login, getUsers, createUser, updateUser, getMessages, sendMessage } from './api'
 
 vi.mock('./auth', () => ({
   getToken: () => 'test-token',
@@ -194,6 +194,91 @@ describe('api utils', () => {
       const body = JSON.parse(fetchMock.mock.calls[0][1].body)
       expect(body).toEqual({ password: 'newpass' })
       expect(body).not.toHaveProperty('is_active')
+    })
+  })
+
+  describe('getMessages', () => {
+    it('makes a GET request to /api/messages with Authorization header', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await getMessages()
+
+      const [url, options] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/messages')
+      expect(options.headers['Authorization']).toBe('Bearer test-token')
+    })
+
+    it('returns the unwrapped data array on success', async () => {
+      const msgs = [{ id: 1, user_id: 1, username: 'alice', content: 'hi', created_at: '2024-01-01T10:00:00Z' }]
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: msgs }),
+      }))
+
+      const result = await getMessages()
+
+      expect(result).toEqual(msgs)
+    })
+
+    it('throws with error code on failed response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'unauthorized' }),
+      }))
+
+      await expect(getMessages()).rejects.toThrow('unauthorized')
+    })
+  })
+
+  describe('sendMessage', () => {
+    it('makes a POST request to /api/messages with content and Authorization header', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { id: 5, user_id: 1, username: 'alice', content: 'hello', created_at: '2024-01-01T10:00:00Z' } }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await sendMessage('hello')
+
+      const [url, options] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/messages')
+      expect(options.method).toBe('POST')
+      expect(options.headers['Authorization']).toBe('Bearer test-token')
+      expect(JSON.parse(options.body)).toEqual({ content: 'hello' })
+    })
+
+    it('returns the created message on success', async () => {
+      const msg = { id: 5, user_id: 1, username: 'alice', content: 'hello', created_at: '2024-01-01T10:00:00Z' }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: msg }),
+      }))
+
+      const result = await sendMessage('hello')
+
+      expect(result).toEqual(msg)
+    })
+
+    it('throws with rate_limit_exceeded on 429 response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'rate_limit_exceeded' }),
+      }))
+
+      await expect(sendMessage('hi')).rejects.toThrow('rate_limit_exceeded')
+    })
+
+    it('throws with server_error when no error field in response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({}),
+      }))
+
+      await expect(sendMessage('hi')).rejects.toThrow('server_error')
     })
   })
 })
