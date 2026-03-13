@@ -14,7 +14,7 @@
 |------|-----------|
 | `docs/PROJECT_OVERVIEW.md` | Бизнес-требования: роли, функционал, NFR (перформанс, безопасность, i18n) |
 | `docs/ARCHITECTURE.md` | Архитектура: стек, модули, схема БД, WebSocket, API контракты |
-| `docs/DEVELOPMENT_PLAN.md` | План milestone'ов M0–M5 |
+| `docs/DEVELOPMENT_PLAN.md` | План milestone'ов M0–M6 |
 | `docs/WORKFLOWS/FEATURE_IMPLEMENTATION.md` | Workflow разработки фич (агентный процесс) |
 | `agents/ORCHESTRATOR.md` | Роль и правила Orchestrator агента |
 | `agents/ARCHITECT.md` | Роль Architect агента |
@@ -45,11 +45,14 @@
 - Локализация RU/EN для экрана логина
 - Проверено: логин работает в браузере (localhost:3000)
 
-### M2 Управление пользователями
-- `POST /api/users` — создание ребёнка
-- `GET /api/users` — список пользователей
-- `PATCH /api/users/{id}` — смена пароля / деактивация
-- UI для родителя, защита роутов
+### M2 Управление пользователями ✅ (merged into develop, PR #5)
+- `POST /api/users`, `GET /api/users`, `PATCH /api/users/{id}` — полный CRUD для родителя
+- JWT + ParentOnly middleware, `cannot_deactivate_self` бизнес-правило
+- `UserManagementPage` UI: список, создание, смена пароля, деактивация
+- `ParentRoute` — child редиректится на `/chat`
+- `AppHeader` с кнопкой Logout на всех авторизованных страницах
+- Локализация RU/EN для всех пользовательских строк и ошибок
+- 101 тест (36 backend + 65 frontend), все зелёные
 
 ### M3 Чат
 - `GET /api/messages` — история за 30 дней
@@ -61,7 +64,14 @@
 - UI-состояния: онлайн / переподключение / недоступен
 - Обработка ошибок, retention job (удаление сообщений старше 30 дней)
 
-### M5 Деплой
+### M5 Чат-бот Lulu
+- Обращение через `@Lulu` в общем чате
+- Bot модуль (BotService + OpenAI API)
+- Поле `is_bot` в таблице users, seeder для Lulu
+- Ответы хранятся в БД, видны всем в чате
+- Иконка бота в UI
+
+### M6 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
 - GitHub Actions CI/CD pipeline
