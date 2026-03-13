@@ -38,7 +38,8 @@
       "username_taken": "Username is already taken",
       "user_not_found": "User not found",
       "cannot_modify_parent": "Cannot modify administrator",
-      "cannot_deactivate_self": "Cannot deactivate your own account"
+      "cannot_deactivate_self": "Cannot deactivate your own account",
+      "password_too_short": "Password must be at least 6 characters"
     }
   },
   "logout": "Log Out",
