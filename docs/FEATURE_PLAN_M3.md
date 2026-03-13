@@ -195,7 +195,7 @@ sendMessage(content)  // POST /api/messages → { id, user_id, username, content
 
 ## Порядок реализации
 
-- **M3.1** Backend: GET /api/messages (MessageService::getHistory, controller, middleware) — ⬜ todo
+- **M3.1** Backend: GET /api/messages (MessageService::getHistory, controller, middleware) — ✅ done
 - **M3.2** Backend: Reverb setup (install, config, Docker, JWT auth endpoint) — ⬜ todo
 - **M3.3** Backend: POST /api/messages + MessageSent event + антиспам — ⬜ todo
 - **M3.4** Frontend: ChatPage + useWebSocket hook + api.js extensions — ⬜ todo
