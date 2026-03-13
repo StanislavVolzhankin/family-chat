@@ -87,7 +87,15 @@ updateUser(id, data)            // PATCH /api/users/{id}
 - Кнопка смены пароля (инлайн-форма или модалка)
 - Кнопка деактивации / активации
 
-#### 3. Защита роута по роли
+#### 3. Logout
+Кнопка выхода в шапке (на всех авторизованных страницах):
+- Вызывает `clearAuth()` из `auth.js`
+- Редиректит на `/login`
+- Серверный эндпоинт не нужен (JWT stateless)
+
+Локализация: добавить ключ `logout` в `ru.json` и `en.json`.
+
+#### 4. Защита роута по роли
 В `App.jsx` добавить `ParentRoute` — редирект на `/chat` если `user.role !== 'parent'`:
 ```jsx
 function ParentRoute({ element }) {
@@ -99,9 +107,10 @@ function ParentRoute({ element }) {
 ```
 Применить к роуту `/users`.
 
-#### 4. Локализация
+#### 5. Локализация
 Добавить в `ru.json` и `en.json`:
 ```json
+"logout": "...",
 "users": {
   "title": "...",
   "create": "...",
@@ -143,9 +152,9 @@ function ParentRoute({ element }) {
 ## Порядок реализации
 
 - **M2.1** Backend API (UserService, UserController, роуты) — ✅ done
-- **M2.2** Middleware (JWT + ParentOnly) — в процессе
-- **M2.3** Frontend API-слой (getUsers, createUser, updateUser)
-- **M2.4** Frontend UI (ParentRoute, UserManagementPage, локализация)
+- **M2.2** Middleware (JWT + ParentOnly) — ✅ done
+- **M2.3** Frontend API-слой (getUsers, createUser, updateUser) — ✅ done
+- **M2.4** Frontend UI (ParentRoute, UserManagementPage, локализация, кнопка Logout) — ✅ done
 - QA + Reviewer + PR в develop
 
 ---

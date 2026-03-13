@@ -28,12 +28,16 @@ class UserService
         return User::all()->map(fn (User $user) => $this->formatUser($user))->all();
     }
 
-    public function updateUser(int $id, array $data): array
+    public function updateUser(int $id, array $data, int $currentUserId): array
     {
         $user = User::find($id);
 
         if (! $user) {
             throw new \InvalidArgumentException('user_not_found');
+        }
+
+        if (isset($data['is_active']) && $data['is_active'] === false && $id === $currentUserId) {
+            throw new \InvalidArgumentException('cannot_deactivate_self');
         }
 
         if ($user->role === 'parent') {

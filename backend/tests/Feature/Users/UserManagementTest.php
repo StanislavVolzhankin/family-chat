@@ -3,6 +3,7 @@
 namespace Tests\Feature\Users;
 
 use App\Modules\Auth\Models\User;
+use Firebase\JWT\JWT;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -25,6 +26,32 @@ class UserManagementTest extends TestCase
         ], $overrides));
     }
 
+    private function tokenFor(User $user): string
+    {
+        $now = time();
+        $payload = [
+            'iss'      => config('app.url'),
+            'sub'      => $user->id,
+            'iat'      => $now,
+            'exp'      => $now + 3600,
+            'username' => $user->username,
+            'role'     => $user->role,
+        ];
+
+        return JWT::encode($payload, config('auth.jwt_secret'), 'HS256');
+    }
+
+    private ?User $authParent = null;
+
+    private function parentHeaders(): array
+    {
+        if ($this->authParent === null) {
+            $this->authParent = $this->createUser(['username' => 'auth_parent', 'role' => 'parent']);
+        }
+
+        return ['Authorization' => 'Bearer ' . $this->tokenFor($this->authParent)];
+    }
+
     // =========================================================================
     // POST /api/users
     // =========================================================================
@@ -34,7 +61,7 @@ class UserManagementTest extends TestCase
         $response = $this->postJson('/api/users', [
             'username' => 'alice',
             'password' => 'secret1',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -50,7 +77,7 @@ class UserManagementTest extends TestCase
         $this->postJson('/api/users', [
             'username' => 'bob',
             'password' => 'mypass1',
-        ]);
+        ], $this->parentHeaders());
 
         $this->assertDatabaseHas('users', [
             'username'  => 'bob',
@@ -64,7 +91,7 @@ class UserManagementTest extends TestCase
         $this->postJson('/api/users', [
             'username' => 'charlie',
             'password' => 'plainpass',
-        ]);
+        ], $this->parentHeaders());
 
         $user = User::where('username', 'charlie')->first();
 
@@ -80,7 +107,7 @@ class UserManagementTest extends TestCase
         $response = $this->postJson('/api/users', [
             'username' => 'duplicate',
             'password' => 'anotherpass',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(422)
             ->assertJsonPath('error', 'username_taken');
@@ -90,7 +117,7 @@ class UserManagementTest extends TestCase
     {
         $response = $this->postJson('/api/users', [
             'password' => 'password123',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(422)
             ->assertJsonPath('error', 'validation_error');
@@ -100,7 +127,7 @@ class UserManagementTest extends TestCase
     {
         $response = $this->postJson('/api/users', [
             'username' => 'newuser',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(422)
             ->assertJsonPath('error', 'validation_error');
@@ -111,10 +138,23 @@ class UserManagementTest extends TestCase
         $response = $this->postJson('/api/users', [
             'username' => 'shortpw',
             'password' => '12345',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(422)
             ->assertJsonPath('error', 'validation_error');
+    }
+
+    public function test_create_user_denied_for_child_token(): void
+    {
+        $child = $this->createUser(['username' => 'achild', 'role' => 'child']);
+        $token = $this->tokenFor($child);
+
+        $this->postJson('/api/users', [
+            'username' => 'newkid',
+            'password' => 'password123',
+        ], ['Authorization' => "Bearer {$token}"])
+            ->assertStatus(403)
+            ->assertJsonPath('error', 'forbidden');
     }
 
     // =========================================================================
@@ -126,31 +166,30 @@ class UserManagementTest extends TestCase
         $this->createUser(['username' => 'user1']);
         $this->createUser(['username' => 'user2']);
 
-        $response = $this->getJson('/api/users');
+        $response = $this->getJson('/api/users', $this->parentHeaders());
 
         $response->assertStatus(200)
             ->assertJsonStructure(['data'])
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(3, 'data'); // user1 + user2 + auth_parent
     }
 
-    public function test_list_users_returns_empty_array_when_no_users_exist(): void
+    public function test_list_users_returns_empty_array_when_only_parent_exists(): void
     {
-        $response = $this->getJson('/api/users');
+        $response = $this->getJson('/api/users', $this->parentHeaders());
 
         $response->assertStatus(200)
-            ->assertJson(['data' => []]);
+            ->assertJsonCount(1, 'data'); // only auth_parent
     }
 
     public function test_list_users_does_not_expose_password_hash(): void
     {
         $this->createUser(['username' => 'secretuser']);
 
-        $response = $this->getJson('/api/users');
+        $response = $this->getJson('/api/users', $this->parentHeaders());
 
         $response->assertStatus(200);
 
-        $users = $response->json('data');
-        foreach ($users as $user) {
+        foreach ($response->json('data') as $user) {
             $this->assertArrayNotHasKey('password_hash', $user);
         }
     }
@@ -159,7 +198,7 @@ class UserManagementTest extends TestCase
     {
         $this->createUser(['username' => 'fielduser']);
 
-        $response = $this->getJson('/api/users');
+        $response = $this->getJson('/api/users', $this->parentHeaders());
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -167,6 +206,16 @@ class UserManagementTest extends TestCase
                     '*' => ['id', 'username', 'role', 'is_active', 'created_at'],
                 ],
             ]);
+    }
+
+    public function test_list_users_denied_for_child_token(): void
+    {
+        $child = $this->createUser(['username' => 'achild', 'role' => 'child']);
+        $token = $this->tokenFor($child);
+
+        $this->getJson('/api/users', ['Authorization' => "Bearer {$token}"])
+            ->assertStatus(403)
+            ->assertJsonPath('error', 'forbidden');
     }
 
     // =========================================================================
@@ -179,7 +228,7 @@ class UserManagementTest extends TestCase
 
         $response = $this->patchJson("/api/users/{$user->id}", [
             'password' => 'newpass1',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(200);
 
@@ -194,7 +243,7 @@ class UserManagementTest extends TestCase
 
         $response = $this->patchJson("/api/users/{$user->id}", [
             'is_active' => false,
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(200)
             ->assertJsonPath('data.is_active', false);
@@ -209,7 +258,7 @@ class UserManagementTest extends TestCase
 
         $response = $this->patchJson("/api/users/{$user->id}", [
             'is_active' => true,
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(200)
             ->assertJsonPath('data.is_active', true);
@@ -220,9 +269,11 @@ class UserManagementTest extends TestCase
 
     public function test_update_nonexistent_user_returns_404_user_not_found(): void
     {
+        $this->parentHeaders(); // ensure auth_parent exists
+
         $response = $this->patchJson('/api/users/99999', [
             'password' => 'newpass1',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(404)
             ->assertJsonPath('error', 'user_not_found');
@@ -230,17 +281,30 @@ class UserManagementTest extends TestCase
 
     public function test_update_user_with_parent_role_returns_403_cannot_modify_parent(): void
     {
-        $parent = $this->createUser([
+        $anotherParent = $this->createUser([
             'username' => 'theparent',
             'role'     => 'parent',
         ]);
 
-        $response = $this->patchJson("/api/users/{$parent->id}", [
+        $response = $this->patchJson("/api/users/{$anotherParent->id}", [
             'password' => 'newpass1',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(403)
             ->assertJsonPath('error', 'cannot_modify_parent');
+    }
+
+    public function test_update_cannot_deactivate_self(): void
+    {
+        $parent = $this->createUser(['username' => 'selfparent', 'role' => 'parent']);
+        $token  = $this->tokenFor($parent);
+
+        $response = $this->patchJson("/api/users/{$parent->id}", [
+            'is_active' => false,
+        ], ['Authorization' => "Bearer {$token}"]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('error', 'cannot_deactivate_self');
     }
 
     public function test_update_user_with_password_shorter_than_6_chars_returns_422_validation_error(): void
@@ -249,7 +313,7 @@ class UserManagementTest extends TestCase
 
         $response = $this->patchJson("/api/users/{$user->id}", [
             'password' => '12345',
-        ]);
+        ], $this->parentHeaders());
 
         $response->assertStatus(422)
             ->assertJsonPath('error', 'validation_error');
@@ -260,7 +324,7 @@ class UserManagementTest extends TestCase
         $user = $this->createUser(['username' => 'nothingchanged', 'is_active' => true]);
         $originalHash = $user->password_hash;
 
-        $response = $this->patchJson("/api/users/{$user->id}", []);
+        $response = $this->patchJson("/api/users/{$user->id}", [], $this->parentHeaders());
 
         $response->assertStatus(200)
             ->assertJsonPath('data.username', 'nothingchanged')
@@ -269,5 +333,18 @@ class UserManagementTest extends TestCase
         $user->refresh();
         $this->assertEquals($originalHash, $user->password_hash);
         $this->assertTrue($user->is_active);
+    }
+
+    public function test_update_denied_for_child_token(): void
+    {
+        $target = $this->createUser(['username' => 'target']);
+        $child  = $this->createUser(['username' => 'achild', 'role' => 'child']);
+        $token  = $this->tokenFor($child);
+
+        $this->patchJson("/api/users/{$target->id}", [
+            'password' => 'newpass1',
+        ], ['Authorization' => "Bearer {$token}"])
+            ->assertStatus(403)
+            ->assertJsonPath('error', 'forbidden');
     }
 }

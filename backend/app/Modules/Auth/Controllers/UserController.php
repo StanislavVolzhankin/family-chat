@@ -35,8 +35,10 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
+        $authUser = $request->attributes->get('auth_user');
+
         try {
-            $user = $this->userService->updateUser($id, $request->only(['password', 'is_active']));
+            $user = $this->userService->updateUser($id, $request->only(['password', 'is_active']), $authUser->id);
 
             return response()->json(['data' => $user], 200);
         } catch (\InvalidArgumentException $e) {
@@ -47,10 +49,11 @@ class UserController extends Controller
     private function resolveHttpCode(string $code): int
     {
         return match ($code) {
-            'username_taken'       => 422,
-            'user_not_found'       => 404,
-            'cannot_modify_parent' => 403,
-            default                => 500,
+            'username_taken'          => 422,
+            'user_not_found'          => 404,
+            'cannot_modify_parent'    => 403,
+            'cannot_deactivate_self'  => 422,
+            default                   => 500,
         };
     }
 }
