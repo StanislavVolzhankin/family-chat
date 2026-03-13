@@ -21,8 +21,27 @@
   },
   "users": {
     "title": "User Management",
-    "create": "Create User"
+    "create": "Create User",
+    "username": "Username",
+    "password": "Password",
+    "new_password": "New password",
+    "role": "Role",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "change_password": "Change Password",
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions",
+    "errors": {
+      "username_taken": "Username is already taken",
+      "user_not_found": "User not found",
+      "cannot_modify_parent": "Cannot modify administrator",
+      "cannot_deactivate_self": "Cannot deactivate your own account"
+    }
   },
+  "logout": "Log Out",
   "errors": {
     "service_unavailable": "Service temporarily unavailable, please try again later"
   }

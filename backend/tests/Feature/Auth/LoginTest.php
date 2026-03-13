@@ -32,14 +32,16 @@ class LoginTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'access_token',
-                'token_type',
-                'expires_in',
-                'user' => ['id', 'username', 'role'],
+                'data' => [
+                    'access_token',
+                    'token_type',
+                    'expires_in',
+                    'user' => ['id', 'username', 'role'],
+                ],
             ])
-            ->assertJsonPath('token_type', 'Bearer')
-            ->assertJsonPath('user.username', 'parent')
-            ->assertJsonPath('user.role', 'parent');
+            ->assertJsonPath('data.token_type', 'Bearer')
+            ->assertJsonPath('data.user.username', 'parent')
+            ->assertJsonPath('data.user.role', 'parent');
     }
 
     public function test_login_with_wrong_password_returns_401(): void

@@ -22,6 +22,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 vi.mock('./utils/auth', () => ({
   isAuthenticated: vi.fn(),
+  getUser: vi.fn(),
 }))
 
 vi.mock('./context/LangContext', () => ({
@@ -41,7 +42,7 @@ vi.mock('./pages/UserManagementPage', () => ({
 }))
 
 // --- Imports that depend on mocks ---
-import { isAuthenticated } from './utils/auth'
+import { isAuthenticated, getUser } from './utils/auth'
 import App from './App'
 
 // Helper: set initial URL and render App
@@ -102,11 +103,12 @@ describe('Route /chat', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 6-7. "/users" — PrivateRoute
+// 6-8. "/users" — ParentRoute
 // ---------------------------------------------------------------------------
 describe('Route /users', () => {
-  it('shows UserManagementPage when authenticated', () => {
+  it('shows UserManagementPage when authenticated as parent', () => {
     isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'parent' })
     renderAt('/users')
     expect(screen.getByText('UserManagementPage')).toBeDefined()
   })
@@ -116,5 +118,13 @@ describe('Route /users', () => {
     renderAt('/users')
     expect(screen.queryByText('UserManagementPage')).toBeNull()
     expect(screen.getByText('LoginPage')).toBeDefined()
+  })
+
+  it('redirects to /chat when authenticated as child', () => {
+    isAuthenticated.mockReturnValue(true)
+    getUser.mockReturnValue({ role: 'child' })
+    renderAt('/users')
+    expect(screen.queryByText('UserManagementPage')).toBeNull()
+    expect(screen.getByText('ChatPage')).toBeDefined()
   })
 })

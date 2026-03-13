@@ -1,4 +1,8 @@
-import { login } from './api'
+import { login, getUsers, createUser, updateUser } from './api'
+
+vi.mock('./auth', () => ({
+  getToken: () => 'test-token',
+}))
 
 describe('api utils', () => {
   afterEach(() => {
@@ -9,7 +13,7 @@ describe('api utils', () => {
     it('makes a POST request to /api/auth/login with correct body and headers', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ token: 'tok-1', user: { id: 1, username: 'alice' } }),
+        json: async () => ({ data: { token: 'tok-1', user: { id: 1, username: 'alice' } } }),
       })
       vi.stubGlobal('fetch', fetchMock)
 
@@ -23,16 +27,16 @@ describe('api utils', () => {
       expect(JSON.parse(options.body)).toEqual({ username: 'alice', password: 'secret' })
     })
 
-    it('returns response data on a successful (2xx) response', async () => {
-      const payload = { token: 'tok-ok', user: { id: 1, username: 'alice', role: 'child' } }
+    it('returns the unwrapped data payload on a successful (2xx) response', async () => {
+      const inner = { token: 'tok-ok', user: { id: 1, username: 'alice', role: 'child' } }
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => payload,
+        json: async () => ({ data: inner }),
       }))
 
       const result = await login('alice', 'secret')
 
-      expect(result).toEqual(payload)
+      expect(result).toEqual(inner)
     })
 
     it('throws an Error with the server error code on a failed (4xx) response', async () => {
@@ -54,14 +58,142 @@ describe('api utils', () => {
     })
 
     it('does not throw on a successful response even if a body field named error exists', async () => {
-      // Defensive: ok:true should always return data, not throw
-      const payload = { token: 'tok-2', user: { id: 2, username: 'bob' } }
+      const inner = { token: 'tok-2', user: { id: 2, username: 'bob' } }
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => payload,
+        json: async () => ({ data: inner }),
       }))
 
-      await expect(login('bob', 'pass')).resolves.toEqual(payload)
+      await expect(login('bob', 'pass')).resolves.toEqual(inner)
+    })
+  })
+
+  describe('getUsers', () => {
+    it('makes a GET request to /api/users with Authorization header', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await getUsers()
+
+      const [url, options] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/users')
+      expect(options.headers['Authorization']).toBe('Bearer test-token')
+    })
+
+    it('returns the unwrapped data array on success', async () => {
+      const users = [{ id: 1, username: 'alice', role: 'child', is_active: true }]
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: users }),
+      }))
+
+      const result = await getUsers()
+
+      expect(result).toEqual(users)
+    })
+
+    it('throws with error code on failed response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'unauthorized' }),
+      }))
+
+      await expect(getUsers()).rejects.toThrow('unauthorized')
+    })
+  })
+
+  describe('createUser', () => {
+    it('makes a POST request to /api/users with correct body and Authorization header', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { id: 2, username: 'bob', role: 'child', is_active: true } }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await createUser('bob', 'pass123')
+
+      const [url, options] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/users')
+      expect(options.method).toBe('POST')
+      expect(options.headers['Authorization']).toBe('Bearer test-token')
+      expect(JSON.parse(options.body)).toEqual({ username: 'bob', password: 'pass123' })
+    })
+
+    it('returns the created user on success', async () => {
+      const newUser = { id: 2, username: 'bob', role: 'child', is_active: true }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: newUser }),
+      }))
+
+      const result = await createUser('bob', 'pass123')
+
+      expect(result).toEqual(newUser)
+    })
+
+    it('throws with error code on failed response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'username_taken' }),
+      }))
+
+      await expect(createUser('bob', 'pass123')).rejects.toThrow('username_taken')
+    })
+  })
+
+  describe('updateUser', () => {
+    it('makes a PATCH request to /api/users/:id with correct body and Authorization header', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { id: 3, username: 'charlie', role: 'child', is_active: false } }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await updateUser(3, { is_active: false })
+
+      const [url, options] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/users/3')
+      expect(options.method).toBe('PATCH')
+      expect(options.headers['Authorization']).toBe('Bearer test-token')
+      expect(JSON.parse(options.body)).toEqual({ is_active: false })
+    })
+
+    it('returns the updated user on success', async () => {
+      const updated = { id: 3, username: 'charlie', role: 'child', is_active: false }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: updated }),
+      }))
+
+      const result = await updateUser(3, { is_active: false })
+
+      expect(result).toEqual(updated)
+    })
+
+    it('throws with error code on failed response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'user_not_found' }),
+      }))
+
+      await expect(updateUser(99, { password: 'x' })).rejects.toThrow('user_not_found')
+    })
+
+    it('sends only the fields provided in updates', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: {} }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await updateUser(5, { password: 'newpass' })
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+      expect(body).toEqual({ password: 'newpass' })
+      expect(body).not.toHaveProperty('is_active')
     })
   })
 })

@@ -21,8 +21,27 @@
   },
   "users": {
     "title": "Управление пользователями",
-    "create": "Создать пользователя"
+    "create": "Создать пользователя",
+    "username": "Логин",
+    "password": "Пароль",
+    "new_password": "Новый пароль",
+    "role": "Роль",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "deactivate": "Деактивировать",
+    "activate": "Активировать",
+    "change_password": "Сменить пароль",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "actions": "Действия",
+    "errors": {
+      "username_taken": "Логин уже занят",
+      "user_not_found": "Пользователь не найден",
+      "cannot_modify_parent": "Нельзя изменять администратора",
+      "cannot_deactivate_self": "Нельзя деактивировать свой аккаунт"
+    }
   },
+  "logout": "Выйти",
   "errors": {
     "service_unavailable": "Сервис временно недоступен, попробуйте позже"
   }

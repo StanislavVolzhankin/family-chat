@@ -24,15 +24,9 @@ class AuthController extends Controller
                 $request->input('password')
             );
 
-            return response()->json($result, 200);
+            return response()->json(['data' => $result], 200);
         } catch (\InvalidArgumentException $e) {
-            return response()->json([
-                'error'   => $e->getMessage(),
-                'message' => match ($e->getMessage()) {
-                    'user_inactive'      => 'Your account is disabled.',
-                    default              => 'The provided username or password is incorrect.',
-                },
-            ], 401);
+            return response()->json(['error' => $e->getMessage()], 401);
         }
     }
 }
