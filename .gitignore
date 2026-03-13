@@ -27,3 +27,8 @@ vendor/
 # OS
 .DS_Store
 Thumbs.db
+
+# Tools
+.claude/
+.postman/
+postman/

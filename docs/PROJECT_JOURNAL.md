@@ -45,7 +45,7 @@
 - Локализация RU/EN для экрана логина
 - Проверено: логин работает в браузере (localhost:3000)
 
-### M2 Управление пользователями ✅ (merged into develop, PR #5)
+### M2 Управление пользователями ✅ (merged into develop, PR #7)
 - `POST /api/users`, `GET /api/users`, `PATCH /api/users/{id}` — полный CRUD для родителя
 - JWT + ParentOnly middleware, `cannot_deactivate_self` бизнес-правило
 - `UserManagementPage` UI: список, создание, смена пароля, деактивация
