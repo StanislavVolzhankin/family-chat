@@ -5,4 +5,5 @@ use App\Modules\Chat\Controllers\MessageController;
 
 Route::prefix('api')->middleware('auth.jwt')->group(function () {
     Route::get('/messages', [MessageController::class, 'index']);
+    Route::post('/messages', [MessageController::class, 'store']);
 });
