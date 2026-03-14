@@ -15,10 +15,12 @@
 docker compose up -d
 ```
 
-Запускает три сервиса:
+Запускает пять сервисов:
 - `app` — Laravel API (http://localhost:8000)
 - `db` — PostgreSQL (localhost:5432)
-- `reverb` — WebSocket-сервер (ws://localhost:6001)
+- `reverb` — WebSocket-сервер (ws://localhost:8080)
+- `queue` — Laravel Queue worker (обрабатывает ответы бота Lulu)
+- `scheduler` — Laravel Scheduler (retention job, очистка старых сообщений)
 
 ### 2. Тестовая БД (один раз, если не создалась автоматически)
 
@@ -36,9 +38,9 @@ docker exec family-chat-app-1 php artisan migrate
 docker exec family-chat-app-1 php artisan db:seed
 ```
 
-Seed создаёт пользователя-родителя:
-- Логин: `parent`
-- Пароль: `secret`
+Seed создаёт:
+- Пользователя-родителя: логин `parent`, пароль `secret`
+- Бота Lulu: запись в `users` с `is_bot=true` (имя берётся из `BOT_NAME` в `.env`)
 
 ### 4. Frontend
 
@@ -75,6 +77,25 @@ docker exec family-chat-app-1 php artisan test
 
 ---
 
+## Переменные окружения для бота
+
+В `backend/.env` необходимо задать:
+
+```env
+BOT_NAME=Lulu
+LLM_PROVIDER=gemini          # gemini | openai
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-1.5-flash
+
+# Опционально (если LLM_PROVIDER=openai)
+# OPENAI_API_KEY=your_key_here
+# OPENAI_MODEL=gpt-4o-mini
+```
+
+Получить Gemini API key бесплатно: [aistudio.google.com](https://aistudio.google.com) → Get API key.
+
+---
+
 ## Полезные команды
 
 ```bash
@@ -83,6 +104,12 @@ docker compose logs -f app
 
 # Логи WebSocket
 docker compose logs -f reverb
+
+# Логи Queue worker (ответы бота)
+docker compose logs -f queue
+
+# Перезапустить queue после изменений
+docker compose up -d --no-deps queue
 
 # Остановить все сервисы
 docker compose down
