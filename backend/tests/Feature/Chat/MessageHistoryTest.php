@@ -102,6 +102,30 @@ class MessageHistoryTest extends TestCase
         $this->assertEquals('Recent message', $data[0]['content']);
     }
 
+    public function test_get_messages_returns_created_at_in_iso8601_format(): void
+    {
+        $user = $this->createUser();
+        $token = $this->authToken($user);
+
+        Message::create([
+            'user_id'    => $user->id,
+            'content'    => 'Hello',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->getJson('/api/messages', [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(200);
+        $createdAt = $response->json('data.0.created_at');
+        $this->assertMatchesRegularExpression(
+            '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$/',
+            $createdAt,
+            'created_at must be ISO 8601 with Z suffix'
+        );
+    }
+
     public function test_get_messages_returns_messages_sorted_by_created_at_asc(): void
     {
         $user = $this->createUser();

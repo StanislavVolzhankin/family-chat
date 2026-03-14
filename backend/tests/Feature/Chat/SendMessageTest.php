@@ -77,6 +77,26 @@ class SendMessageTest extends TestCase
             ]);
     }
 
+    public function test_send_message_returns_created_at_in_iso8601_format(): void
+    {
+        Event::fake();
+
+        $user = $this->createUser(['username' => 'carol']);
+        $token = $this->authToken($user);
+
+        $response = $this->postJson('/api/messages', ['content' => 'Hello'], [
+            'Authorization' => "Bearer {$token}",
+        ]);
+
+        $response->assertStatus(201);
+        $createdAt = $response->json('data.created_at');
+        $this->assertMatchesRegularExpression(
+            '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$/',
+            $createdAt,
+            'created_at must be ISO 8601 with Z suffix'
+        );
+    }
+
     public function test_send_empty_content_returns_422(): void
     {
         $user = $this->createUser();
