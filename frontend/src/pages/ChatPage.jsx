@@ -18,14 +18,14 @@ function ChatPage() {
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
   const handleNewMessage = useCallback((msg) => {
-    setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [msg, ...prev])
+    setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }, [])
 
   const { status } = useWebSocket(token, handleNewMessage)
 
   useEffect(() => {
     getMessages()
-      .then(msgs => setMessages([...msgs].reverse()))
+      .then(msgs => setMessages(msgs))
       .catch(() => {})
   }, [])
 
