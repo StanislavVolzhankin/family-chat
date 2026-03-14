@@ -14,7 +14,7 @@
 |------|-----------|
 | `docs/PROJECT_OVERVIEW.md` | Бизнес-требования: роли, функционал, NFR (перформанс, безопасность, i18n) |
 | `docs/ARCHITECTURE.md` | Архитектура: стек, модули, схема БД, WebSocket, API контракты |
-| `docs/DEVELOPMENT_PLAN.md` | План milestone'ов M0–M6 |
+| `docs/DEVELOPMENT_PLAN.md` | План milestone'ов M0–M10 |
 | `docs/WORKFLOWS/FEATURE_IMPLEMENTATION.md` | Workflow разработки фич (агентный процесс) |
 | `agents/ORCHESTRATOR.md` | Роль и правила Orchestrator агента |
 | `agents/ARCHITECT.md` | Роль Architect агента |
@@ -81,7 +81,7 @@
 - Ответы хранятся в БД, видны всем в чате
 - Иконка бота в UI
 
-### M6 Деплой
+### M10 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
 - GitHub Actions CI/CD pipeline
