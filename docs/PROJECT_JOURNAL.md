@@ -66,10 +66,13 @@
 - Уроки: `ShouldBroadcastNow` вместо `ShouldBroadcast` (без queue worker события падали в очередь навсегда); React StrictMode double-mount решается через `setTimeout(0)` + `active` flag в useEffect; значения `.env` в docker-compose перекрывают файл только через `environment:` секцию, `php artisan serve` всегда читает `.env` напрямую
 - Порядок сообщений (PR #14): новые сообщения отображаются сверху — `flex-direction: column-reverse` на `.messageList`, массив остаётся в порядке oldest→newest
 
-### M4 Устойчивость
-- Reconnect с exponential backoff
-- UI-состояния: онлайн / переподключение / недоступен
-- Обработка ошибок, retention job (удаление сообщений старше 30 дней)
+### M4 Устойчивость ✅ (merged into develop, PR #17)
+- `CleanupOldMessages` artisan command: батчевое удаление сообщений старше 30 дней (по 100 за итерацию), зарегистрирован в `->daily()` расписании
+- `scheduler` Docker-сервис: запускает `php artisan schedule:run` каждые 60 секунд
+- `useWebSocket` hook: exponential backoff (500ms→1s→2s→4s→8s→16s, до 10 попыток), статус `failed` после исчерпания, после reconnect — дозапрос истории с `since=lastTimestamp`
+- `ChatPage` UI: счётчик попыток при `offline`, сообщение "недоступен" при `failed`, отправка заблокирована при обоих статусах
+- Локализация RU/EN: `chat.status.offline` (с `{{attempt}}/{{max}}`), `chat.status.failed`
+- 57 backend тестов (4 новых для CleanupOldMessages), 98 frontend тестов — все зелёные
 
 ### M5 Чат-бот Lulu
 - Обращение через `@Lulu` в общем чате
