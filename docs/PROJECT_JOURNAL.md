@@ -64,6 +64,7 @@
 - Локализация RU/EN: chat.errors.*, chat.char_count, chat.status.connecting
 - 98 тестов (backend + frontend), все зелёные
 - Уроки: `ShouldBroadcastNow` вместо `ShouldBroadcast` (без queue worker события падали в очередь навсегда); React StrictMode double-mount решается через `setTimeout(0)` + `active` flag в useEffect; значения `.env` в docker-compose перекрывают файл только через `environment:` секцию, `php artisan serve` всегда читает `.env` напрямую
+- Порядок сообщений (PR #14): новые сообщения отображаются сверху — `flex-direction: column-reverse` на `.messageList`, массив остаётся в порядке oldest→newest
 
 ### M4 Устойчивость
 - Reconnect с exponential backoff
