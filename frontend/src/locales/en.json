@@ -17,7 +17,8 @@
     "status": {
       "online": "Online",
       "connecting": "Connecting...",
-      "offline": "Unavailable"
+      "offline": "Reconnecting… attempt {{attempt}} of {{max}}",
+      "failed": "Chat unavailable. Please refresh the page."
     },
     "errors": {
       "rate_limit_exceeded": "Too fast, wait a second",

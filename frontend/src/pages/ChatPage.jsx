@@ -21,7 +21,7 @@ function ChatPage() {
     setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }, [])
 
-  const { status } = useWebSocket(token, handleNewMessage)
+  const { status, attempt, maxAttempts } = useWebSocket(token, handleNewMessage)
 
   useEffect(() => {
     getMessages()
@@ -50,13 +50,20 @@ function ChatPage() {
   }
 
   const canSend = status === 'online' && !sending && content.trim().length > 0
+  const inputDisabled = status !== 'online' || sending
 
   return (
     <>
       <AppHeader />
       <div className={styles.container}>
         <div className={styles.statusBar}>
-          <span className={styles[`status_${status}`]}>{t.chat.status[status]}</span>
+          <span className={styles[`status_${status}`]}>
+            {status === 'offline'
+              ? t.chat.status.offline
+                  .replace('{{attempt}}', attempt)
+                  .replace('{{max}}', maxAttempts)
+              : t.chat.status[status]}
+          </span>
         </div>
         <div className={styles.messageList}>
           {messages.map(msg => (
@@ -75,7 +82,7 @@ function ChatPage() {
             onKeyDown={handleKeyDown}
             placeholder={t.chat.placeholder}
             maxLength={150}
-            disabled={status !== 'online' || sending}
+            disabled={inputDisabled}
             className={styles.textarea}
             rows={2}
             aria-label={t.chat.placeholder}
