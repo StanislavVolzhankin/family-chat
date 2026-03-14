@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import AppHeader from '../components/AppHeader'
 import { useLang } from '../context/LangContext'
 import { getToken } from '../utils/auth'
@@ -17,8 +17,6 @@ function ChatPage() {
   const [content, setContent] = useState('')
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
-  const messagesEndRef = useRef(null)
-
   const handleNewMessage = useCallback((msg) => {
     setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }, [])
@@ -30,10 +28,6 @@ function ChatPage() {
       .then(msgs => setMessages(msgs))
       .catch(() => {})
   }, [])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' })
-  }, [messages])
 
   async function handleSend(e) {
     e.preventDefault()
@@ -72,7 +66,6 @@ function ChatPage() {
               <span className={styles.time}>{formatTime(msg.created_at)}</span>
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
         <form onSubmit={handleSend} className={styles.form}>
           {sendError && <p className={styles.error} role="alert">{sendError}</p>}
