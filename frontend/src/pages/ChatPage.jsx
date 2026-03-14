@@ -7,7 +7,7 @@ import { useWebSocket } from '../hooks/useWebSocket'
 import styles from './ChatPage.module.css'
 
 function formatTime(isoString) {
-  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Minsk' })
 }
 
 function ChatPage() {

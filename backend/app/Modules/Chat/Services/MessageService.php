@@ -27,7 +27,7 @@ class MessageService
                 'user_id'    => $m->user_id,
                 'username'   => $m->username,
                 'content'    => $m->content,
-                'created_at' => $m->created_at,
+                'created_at' => \Carbon\Carbon::parse($m->created_at)->toISOString(),
             ])
             ->toArray();
     }
@@ -65,7 +65,7 @@ class MessageService
             'user_id'    => $message->user_id,
             'username'   => $username,
             'content'    => $message->content,
-            'created_at' => (string) $message->created_at,
+            'created_at' => \Carbon\Carbon::parse($message->created_at)->toISOString(),
         ];
 
         broadcast(new MessageSent(...$payload));
