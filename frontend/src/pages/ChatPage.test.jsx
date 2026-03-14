@@ -92,10 +92,10 @@ describe('ChatPage rendering', () => {
 
 describe('Status states', () => {
   it('disables textarea and send button when offline', async () => {
-    useWebSocket.mockReturnValue({ status: 'offline' })
+    useWebSocket.mockReturnValue({ status: 'offline', attempt: 2, maxAttempts: 10 })
     renderChatPage()
     await waitFor(() => {
-      expect(screen.getByText('Недоступно')).toBeDefined()
+      expect(screen.getByText('Переподключение… попытка 2 из 10')).toBeDefined()
       expect(screen.getByRole('textbox').disabled).toBe(true)
       expect(screen.getByRole('button', { name: 'Отправить' }).disabled).toBe(true)
     })

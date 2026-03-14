@@ -56,6 +56,26 @@ services:
       db:
         condition: service_healthy
 
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:15
     ports:
