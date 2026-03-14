@@ -196,6 +196,27 @@ describe('Sending messages', () => {
   })
 })
 
+describe('Bot messages', () => {
+  it('shows bot icon for message with is_bot=true', async () => {
+    getMessages.mockResolvedValue([
+      { id: 1, user_id: 10, username: 'Lulu', is_bot: true, content: 'Привет!', created_at: '2024-01-01T10:00:00Z' },
+    ])
+    renderChatPage()
+    await waitFor(() => {
+      expect(screen.getByText('🤖')).toBeDefined()
+    })
+  })
+
+  it('does not show bot icon for regular message', async () => {
+    getMessages.mockResolvedValue([
+      { id: 1, user_id: 1, username: 'alice', is_bot: false, content: 'Привет!', created_at: '2024-01-01T10:00:00Z' },
+    ])
+    renderChatPage()
+    await waitFor(() => screen.getByText('Привет!'))
+    expect(screen.queryByText('🤖')).toBeNull()
+  })
+})
+
 describe('New messages from WebSocket', () => {
   it('adds new message received via onMessage callback', async () => {
     let capturedOnMessage

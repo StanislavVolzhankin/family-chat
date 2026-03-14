@@ -113,6 +113,17 @@ class UserManagementTest extends TestCase
             ->assertJsonPath('error', 'username_taken');
     }
 
+    public function test_create_user_with_bot_name_returns_422_username_reserved(): void
+    {
+        $response = $this->postJson('/api/users', [
+            'username' => config('bot.name'),
+            'password' => 'password123',
+        ], $this->parentHeaders());
+
+        $response->assertStatus(422)
+            ->assertJsonPath('error', 'username_reserved');
+    }
+
     public function test_create_user_without_username_returns_422_validation_error(): void
     {
         $response = $this->postJson('/api/users', [

@@ -56,6 +56,37 @@ services:
       db:
         condition: service_healthy
 
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: php artisan queue:work --sleep=3 --tries=3
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - BROADCAST_CONNECTION=reverb
+      - REVERB_APP_ID=family-chat
+      - REVERB_APP_KEY=family-chat-key
+      - REVERB_APP_SECRET=family-chat-secret
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+      - QUEUE_CONNECTION=database
+      - BOT_NAME=${BOT_NAME:-Lulu}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+    depends_on:
+      db:
+        condition: service_healthy
+
   scheduler:
     build:
       context: ./backend

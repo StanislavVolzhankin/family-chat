@@ -50,6 +50,7 @@ class UserController extends Controller
     {
         return match ($code) {
             'username_taken'          => 422,
+            'username_reserved'       => 422,
             'user_not_found'          => 404,
             'cannot_modify_parent'    => 403,
             'cannot_deactivate_self'  => 422,

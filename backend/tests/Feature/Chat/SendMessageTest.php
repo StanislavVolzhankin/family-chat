@@ -3,11 +3,13 @@
 namespace Tests\Feature\Chat;
 
 use App\Modules\Auth\Models\User;
+use App\Modules\Bot\Jobs\ProcessBotReply;
 use App\Modules\Chat\Models\Message;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class SendMessageTest extends TestCase
@@ -73,7 +75,7 @@ class SendMessageTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'data' => ['id', 'user_id', 'username', 'content', 'created_at'],
+                'data' => ['id', 'user_id', 'username', 'is_bot', 'content', 'created_at'],
             ]);
     }
 
@@ -201,5 +203,44 @@ class SendMessageTest extends TestCase
         $this->postJson('/api/messages', ['content' => 'From user2'], [
             'Authorization' => "Bearer {$token2}",
         ])->assertStatus(201);
+    }
+
+    public function test_send_message_with_bot_mention_dispatches_process_bot_reply_job(): void
+    {
+        Queue::fake();
+
+        $bot = User::create([
+            'username'      => config('bot.name'),
+            'password_hash' => Hash::make(str()->random(32)),
+            'role'          => 'child',
+            'is_active'     => true,
+            'is_bot'        => true,
+        ]);
+
+        $user = $this->createUser(['username' => 'alice']);
+        $token = $this->authToken($user);
+
+        $content = 'Привет @' . config('bot.name') . ', как дела?';
+
+        $this->postJson('/api/messages', ['content' => $content], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertStatus(201);
+
+        Queue::assertPushed(ProcessBotReply::class);
+    }
+
+    public function test_send_message_without_bot_mention_does_not_dispatch_job(): void
+    {
+        Queue::fake();
+        Event::fake();
+
+        $user = $this->createUser(['username' => 'bob']);
+        $token = $this->authToken($user);
+
+        $this->postJson('/api/messages', ['content' => 'Привет всем!'], [
+            'Authorization' => "Bearer {$token}",
+        ])->assertStatus(201);
+
+        Queue::assertNothingPushed();
     }
 }
