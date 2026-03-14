@@ -54,10 +54,16 @@
 - Локализация RU/EN для всех пользовательских строк и ошибок
 - 101 тест (36 backend + 65 frontend), все зелёные
 
-### M3 Чат
-- `GET /api/messages` — история за 30 дней
-- WebSocket (send_message / new_message)
-- UI чата, антиспам (1 сообщение/сек), лимит 150 символов
+### M3 Чат ✅ (merged into develop, PR #12)
+- `GET /api/messages` — история за 30 дней (с join на users для username)
+- `POST /api/messages` — сохранение + broadcast + антиспам (1 сообщение/сек через Cache)
+- Laravel Reverb WebSocket сервер (порт 8080), канал `chat`, событие `MessageSent`
+- `useWebSocket` hook: laravel-echo + pusher-js, статусы connecting/online/offline
+- `ChatPage` UI: лента сообщений, счётчик символов (0/150), Ctrl+Enter, блокировка при offline
+- Дедупликация сообщений по ID (WebSocket + история не дают дублей)
+- Локализация RU/EN: chat.errors.*, chat.char_count, chat.status.connecting
+- 98 тестов (backend + frontend), все зелёные
+- Уроки: `ShouldBroadcastNow` вместо `ShouldBroadcast` (без queue worker события падали в очередь навсегда); React StrictMode double-mount решается через `setTimeout(0)` + `active` flag в useEffect; значения `.env` в docker-compose перекрывают файл только через `environment:` секцию, `php artisan serve` всегда читает `.env` напрямую
 
 ### M4 Устойчивость
 - Reconnect с exponential backoff
