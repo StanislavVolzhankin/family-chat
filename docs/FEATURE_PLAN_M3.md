@@ -198,8 +198,16 @@ sendMessage(content)  // POST /api/messages → { id, user_id, username, content
 - **M3.1** Backend: GET /api/messages (MessageService::getHistory, controller, middleware) — ✅ done
 - **M3.2** Backend: Reverb setup (install, config, Docker, JWT auth endpoint) — ✅ done
 - **M3.3** Backend: POST /api/messages + MessageSent event + антиспам — ✅ done
-- **M3.4** Frontend: ChatPage + useWebSocket hook + api.js extensions — ⬜ todo
-- QA + Reviewer + PR в develop
+- **M3.4** Frontend: ChatPage + useWebSocket hook + api.js extensions — ✅ done
+- QA + Reviewer + PR в develop — ✅ done
+
+## Bugfixes (после M3.4)
+
+- `ShouldBroadcast` → `ShouldBroadcastNow` — broadcast шёл в очередь без queue worker
+- `BROADCAST_CONNECTION=log` → `reverb` в `backend/.env`
+- `backend/.env` Reverb-значения приведены в соответствие с docker-compose (`reverb:family-chat-key`)
+- `useWebSocket.js` — `setTimeout(0)` для обхода React StrictMode double-mount
+- `frontend/.env` — исправлен `VITE_REVERB_APP_KEY`
 
 ---
 

@@ -28,6 +28,11 @@ beforeEach(() => {
   stateChangeHandler = null
   newMessageHandler = null
   vi.clearAllMocks()
+  vi.useFakeTimers()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('useWebSocket', () => {
@@ -43,12 +48,14 @@ describe('useWebSocket', () => {
 
   it('sets status to online when connected state fires', () => {
     const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     act(() => { stateChangeHandler({ current: 'connected' }) })
     expect(result.current.status).toBe('online')
   })
 
   it('sets status to connecting when connecting state fires', () => {
     const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     act(() => { stateChangeHandler({ current: 'connected' }) })
     act(() => { stateChangeHandler({ current: 'connecting' }) })
     expect(result.current.status).toBe('connecting')
@@ -56,6 +63,7 @@ describe('useWebSocket', () => {
 
   it('sets status to offline when disconnected state fires', () => {
     const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     act(() => { stateChangeHandler({ current: 'connected' }) })
     act(() => { stateChangeHandler({ current: 'disconnected' }) })
     expect(result.current.status).toBe('offline')
@@ -63,6 +71,7 @@ describe('useWebSocket', () => {
 
   it('sets status to offline when unavailable state fires', () => {
     const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     act(() => { stateChangeHandler({ current: 'unavailable' }) })
     expect(result.current.status).toBe('offline')
   })
@@ -70,6 +79,7 @@ describe('useWebSocket', () => {
   it('calls onMessage when new_message event fires', () => {
     const onMessage = vi.fn()
     renderHook(() => useWebSocket('tok', onMessage))
+    act(() => vi.runAllTimers())
     const msg = { id: 1, username: 'alice', content: 'hi', created_at: '2024-01-01T10:00:00Z' }
     act(() => { newMessageHandler(msg) })
     expect(onMessage).toHaveBeenCalledWith(msg)
@@ -77,12 +87,14 @@ describe('useWebSocket', () => {
 
   it('subscribes to chat channel', () => {
     renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     expect(mockChannel).toHaveBeenCalledWith('chat')
     expect(mockListen).toHaveBeenCalledWith('.new_message', expect.any(Function))
   })
 
   it('cleans up (leaveChannel + disconnect) on unmount', () => {
     const { unmount } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
     unmount()
     expect(mockLeaveChannel).toHaveBeenCalledWith('chat')
     expect(mockDisconnect).toHaveBeenCalled()
@@ -90,6 +102,7 @@ describe('useWebSocket', () => {
 
   it('does not create Echo when token is null', () => {
     renderHook(() => useWebSocket(null, vi.fn()))
+    act(() => vi.runAllTimers())
     expect(mockChannel).not.toHaveBeenCalled()
   })
 })

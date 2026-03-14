@@ -20,36 +20,47 @@ export function useWebSocket(token, onMessage) {
       return
     }
 
-    window.Pusher = Pusher
+    let echo = null
+    let active = true
 
-    const echo = new Echo({
-      broadcaster: 'reverb',
-      key: REVERB_KEY,
-      wsHost: REVERB_HOST,
-      wsPort: REVERB_PORT,
-      wssPort: REVERB_PORT,
-      forceTLS: false,
-      enabledTransports: ['ws'],
-      authEndpoint: '/api/broadcasting/auth',
-      auth: {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    })
+    const timer = setTimeout(() => {
+      if (!active) return
 
-    const conn = echo.connector.pusher.connection
-    conn.bind('state_change', ({ current }) => {
-      if (current === 'connected') setStatus('online')
-      else if (current === 'connecting') setStatus('connecting')
-      else setStatus('offline')
-    })
+      window.Pusher = Pusher
 
-    echo.channel('chat').listen('.new_message', (msg) => {
-      onMessageRef.current(msg)
-    })
+      echo = new Echo({
+        broadcaster: 'reverb',
+        key: REVERB_KEY,
+        wsHost: REVERB_HOST,
+        wsPort: REVERB_PORT,
+        wssPort: REVERB_PORT,
+        forceTLS: false,
+        enabledTransports: ['ws'],
+        authEndpoint: '/api/broadcasting/auth',
+        auth: {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      })
+
+      const conn = echo.connector.pusher.connection
+      conn.bind('state_change', ({ current }) => {
+        if (current === 'connected') setStatus('online')
+        else if (current === 'connecting') setStatus('connecting')
+        else setStatus('offline')
+      })
+
+      echo.channel('chat').listen('.new_message', (msg) => {
+        onMessageRef.current(msg)
+      })
+    }, 0)
 
     return () => {
-      echo.leaveChannel('chat')
-      echo.disconnect()
+      active = false
+      clearTimeout(timer)
+      if (echo) {
+        echo.leaveChannel('chat')
+        echo.disconnect()
+      }
     }
   }, [token])
 
