@@ -13,10 +13,17 @@
     "title": "Chat",
     "placeholder": "Type a message...",
     "send": "Send",
+    "char_count": "{{count}}/150",
     "status": {
       "online": "Online",
-      "reconnecting": "Reconnecting...",
+      "connecting": "Connecting...",
       "offline": "Unavailable"
+    },
+    "errors": {
+      "rate_limit_exceeded": "Too fast, wait a second",
+      "content_too_long": "Message too long (max 150 characters)",
+      "content_empty": "Cannot send an empty message",
+      "send_failed": "Failed to send message"
     }
   },
   "users": {

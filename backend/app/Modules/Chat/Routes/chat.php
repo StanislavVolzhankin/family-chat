@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Modules\Chat\Controllers\MessageController;
 
-// TODO: add auth middleware (Milestone 1)
-Route::prefix('api')->group(function () {
+Route::prefix('api')->middleware('auth.jwt')->group(function () {
     Route::get('/messages', [MessageController::class, 'index']);
+    Route::post('/messages', [MessageController::class, 'store']);
 });
