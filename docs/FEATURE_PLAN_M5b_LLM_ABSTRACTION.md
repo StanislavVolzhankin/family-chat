@@ -59,23 +59,23 @@ GEMINI_MODEL=gemini-1.5-flash
 
 ## Подзадачи
 
-### M5b.1 — LlmProvider interface + провайдеры ⬜
+### M5b.1 — LlmProvider interface + провайдеры ✅
 - Создать `App\Modules\Bot\Contracts\LlmProvider` с методом `chat(string $question): string`
 - `OpenAiProvider` — перенести логику из `BotService::fetchReply()`
 - `GeminiProvider` — реализация через Google Gemini API (HTTP REST или SDK)
 
-### M5b.2 — BotService рефакторинг ⬜
+### M5b.2 — BotService рефакторинг ✅
 - Убрать `fetchReply()` из `BotService`
 - Добавить `LlmProvider $llm` в конструктор через DI
 - `reply()` вызывает `$this->llm->chat($question)`
 
-### M5b.3 — AppServiceProvider биндинг ⬜
+### M5b.3 — AppServiceProvider биндинг ✅
 - Зарегистрировать биндинг `LlmProvider` → конкретный провайдер по конфигу
 
-### M5b.4 — config/bot.php + .env.example ⬜
+### M5b.4 — config/bot.php + .env.example ✅
 - Добавить `llm_provider`, `gemini_key`, `gemini_model`
 
-### M5b.5 — Тесты ⬜
+### M5b.5 — Тесты ✅
 - `BotServiceTest` — передавать mock `LlmProvider` через конструктор (вместо переопределения `fetchReply`)
 - `GeminiProvider` — тест с заглушкой HTTP
 - `OpenAiProvider` — аналогично
