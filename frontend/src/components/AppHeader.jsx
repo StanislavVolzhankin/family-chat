@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { clearAuth, getUser } from '../utils/auth'
 import { useLang } from '../context/LangContext'
+import LangSwitcher from './LangSwitcher'
 import styles from './AppHeader.module.css'
 
 function AppHeader() {
@@ -27,6 +28,7 @@ function AppHeader() {
         </nav>
       )}
       <div className={styles.right}>
+        <LangSwitcher />
         {user?.username && <span className={styles.username}>{user.username}</span>}
         <button onClick={handleLogout} className={styles.logoutButton}>
           {t.nav.logout}

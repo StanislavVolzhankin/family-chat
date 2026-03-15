@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { login } from '../utils/api'
 import { saveAuth } from '../utils/auth'
 import { useLang } from '../context/LangContext'
+import LangSwitcher from '../components/LangSwitcher'
 import styles from './LoginPage.module.css'
 
 function LoginPage() {
   const navigate = useNavigate()
-  const { lang, setLang, t } = useLang()
+  const { t } = useLang()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,8 +35,7 @@ function LoginPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.langSwitch}>
-          <button onClick={() => setLang('ru')} disabled={lang === 'ru'}>RU</button>
-          <button onClick={() => setLang('en')} disabled={lang === 'en'}>EN</button>
+          <LangSwitcher />
         </div>
 
         <div className={styles.logo}>🚀</div>
