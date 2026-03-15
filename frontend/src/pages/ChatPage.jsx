@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import AppHeader from '../components/AppHeader'
 import OnlineUsers from '../components/OnlineUsers'
 import { useLang } from '../context/LangContext'
@@ -19,6 +19,21 @@ function ChatPage() {
   const [content, setContent] = useState('')
   const [sendError, setSendError] = useState(null)
   const [sending, setSending] = useState(false)
+  const [showBadge, setShowBadge] = useState(false)
+  const listRef = useRef(null)
+  const atBottomRef = useRef(true)
+
+  function scrollToBottom() {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
+  }
+
+  function handleScroll() {
+    if (!listRef.current) return
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current
+    atBottomRef.current = scrollHeight - scrollTop - clientHeight < 100
+    if (atBottomRef.current) setShowBadge(false)
+  }
+
   const handleNewMessage = useCallback((msg) => {
     setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }, [])
@@ -30,6 +45,15 @@ function ChatPage() {
       .then(msgs => setMessages(msgs))
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (messages.length === 0) return
+    if (atBottomRef.current) {
+      scrollToBottom()
+    } else {
+      setShowBadge(true)
+    }
+  }, [messages])
 
   async function handleSend(e) {
     e.preventDefault()
@@ -48,7 +72,7 @@ function ChatPage() {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && e.ctrlKey) handleSend(e)
+    if (e.key === 'Enter' && !e.shiftKey) handleSend(e)
   }
 
   const canSend = status === 'online' && !sending && content.trim().length > 0
@@ -73,7 +97,7 @@ function ChatPage() {
           <span className={styles.statusDot} />
           <span>{statusText}</span>
         </div>
-        <div className={styles.messageList}>
+        <div className={styles.messageList} ref={listRef} onScroll={handleScroll}>
           {messages.map(msg => {
             const type = getMessageType(msg)
             return (
@@ -90,6 +114,11 @@ function ChatPage() {
             )
           })}
         </div>
+        {showBadge && (
+          <button className={styles.newMessageBadge} onClick={() => { scrollToBottom(); setShowBadge(false) }}>
+            {t.chat.new_message}
+          </button>
+        )}
         <form onSubmit={handleSend} className={styles.form}>
           {sendError && <p className={styles.error} role="alert">{sendError}</p>}
           <textarea

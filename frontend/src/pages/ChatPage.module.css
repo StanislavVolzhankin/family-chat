@@ -55,10 +55,26 @@
   overflow-y: auto;
   padding: 1rem 0;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 0.75rem;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+}
+
+.newMessageBadge {
+  align-self: center;
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.82rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  transition: opacity 0.2s;
 }
 
 .messageWrapper {
@@ -105,6 +121,7 @@
   font-size: 0.95rem;
   line-height: 1.5;
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .messageWrapper.own .bubble {
