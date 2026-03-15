@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import AppHeader from '../components/AppHeader'
+import OnlineUsers from '../components/OnlineUsers'
 import { useLang } from '../context/LangContext'
 import { getToken, getUser } from '../utils/auth'
 import { getMessages, sendMessage } from '../utils/api'
@@ -22,7 +23,7 @@ function ChatPage() {
     setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
   }, [])
 
-  const { status, attempt, maxAttempts } = useWebSocket(token, handleNewMessage)
+  const { status, attempt, maxAttempts, onlineUsers } = useWebSocket(token, handleNewMessage)
 
   useEffect(() => {
     getMessages()
@@ -66,6 +67,7 @@ function ChatPage() {
   return (
     <div className={styles.page}>
       <AppHeader />
+      <div className={styles.chatLayout}>
       <div className={styles.container}>
         <div className={`${styles.statusBar} ${styles[`status_${status}`]}`}>
           <span className={styles.statusDot} />
@@ -110,6 +112,8 @@ function ChatPage() {
             </button>
           </div>
         </form>
+      </div>
+      <OnlineUsers users={onlineUsers} />
       </div>
     </div>
   )

@@ -55,6 +55,9 @@
     "unavailable": "Lulu is temporarily unavailable. Please try again later.",
     "badge": "bot"
   },
+  "online_users": {
+    "title": "Online"
+  },
   "nav": {
     "chat": "Chat",
     "users": "User Management",

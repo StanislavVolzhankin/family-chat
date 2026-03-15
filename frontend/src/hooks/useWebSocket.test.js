@@ -3,20 +3,32 @@ import { useWebSocket } from './useWebSocket'
 
 let stateChangeHandler = null
 let newMessageHandler = null
+let hereHandler = null
+let joiningHandler = null
+let leavingHandler = null
+
 const mockBind = vi.fn((event, handler) => {
   if (event === 'state_change') stateChangeHandler = handler
 })
-const mockListen = vi.fn((event, handler) => {
-  if (event === '.new_message') newMessageHandler = handler
-})
+
+const mockChannelObj = {
+  here: vi.fn((handler) => { hereHandler = handler; return mockChannelObj }),
+  joining: vi.fn((handler) => { joiningHandler = handler; return mockChannelObj }),
+  leaving: vi.fn((handler) => { leavingHandler = handler; return mockChannelObj }),
+  listen: vi.fn((event, handler) => {
+    if (event === '.new_message') newMessageHandler = handler
+    return mockChannelObj
+  }),
+}
+
+const mockJoin = vi.fn(() => mockChannelObj)
 const mockLeaveChannel = vi.fn()
 const mockDisconnect = vi.fn()
-const mockChannel = vi.fn(() => ({ listen: mockListen }))
 
 vi.mock('laravel-echo', () => ({
   default: vi.fn(() => ({
     connector: { pusher: { connection: { bind: mockBind } } },
-    channel: mockChannel,
+    join: mockJoin,
     leaveChannel: mockLeaveChannel,
     disconnect: mockDisconnect,
   })),
@@ -27,6 +39,9 @@ vi.mock('pusher-js', () => ({ default: class Pusher {} }))
 beforeEach(() => {
   stateChangeHandler = null
   newMessageHandler = null
+  hereHandler = null
+  joiningHandler = null
+  leavingHandler = null
   vi.clearAllMocks()
   vi.useFakeTimers()
 })
@@ -85,24 +100,53 @@ describe('useWebSocket', () => {
     expect(onMessage).toHaveBeenCalledWith(msg)
   })
 
-  it('subscribes to chat channel', () => {
+  it('subscribes to presence chat channel', () => {
     renderHook(() => useWebSocket('tok', vi.fn()))
     act(() => vi.runAllTimers())
-    expect(mockChannel).toHaveBeenCalledWith('chat')
-    expect(mockListen).toHaveBeenCalledWith('.new_message', expect.any(Function))
+    expect(mockJoin).toHaveBeenCalledWith('chat')
+    expect(mockChannelObj.listen).toHaveBeenCalledWith('.new_message', expect.any(Function))
   })
 
   it('cleans up (leaveChannel + disconnect) on unmount', () => {
     const { unmount } = renderHook(() => useWebSocket('tok', vi.fn()))
     act(() => vi.runAllTimers())
     unmount()
-    expect(mockLeaveChannel).toHaveBeenCalledWith('chat')
+    expect(mockLeaveChannel).toHaveBeenCalledWith('presence-chat')
     expect(mockDisconnect).toHaveBeenCalled()
   })
 
   it('does not create Echo when token is null', () => {
     renderHook(() => useWebSocket(null, vi.fn()))
     act(() => vi.runAllTimers())
-    expect(mockChannel).not.toHaveBeenCalled()
+    expect(mockJoin).not.toHaveBeenCalled()
+  })
+
+  it('here event sets onlineUsers', () => {
+    const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
+    const users = [{ id: 1, username: 'alice', is_bot: false }]
+    act(() => { hereHandler(users) })
+    expect(result.current.onlineUsers).toEqual(users)
+  })
+
+  it('joining event adds user to onlineUsers', () => {
+    const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
+    act(() => { hereHandler([{ id: 1, username: 'alice', is_bot: false }]) })
+    act(() => { joiningHandler({ id: 2, username: 'bob', is_bot: false }) })
+    expect(result.current.onlineUsers).toHaveLength(2)
+    expect(result.current.onlineUsers.find(u => u.username === 'bob')).toBeDefined()
+  })
+
+  it('leaving event removes user from onlineUsers', () => {
+    const { result } = renderHook(() => useWebSocket('tok', vi.fn()))
+    act(() => vi.runAllTimers())
+    act(() => { hereHandler([
+      { id: 1, username: 'alice', is_bot: false },
+      { id: 2, username: 'bob', is_bot: false },
+    ]) })
+    act(() => { leavingHandler({ id: 2, username: 'bob', is_bot: false }) })
+    expect(result.current.onlineUsers).toHaveLength(1)
+    expect(result.current.onlineUsers[0].username).toBe('alice')
   })
 })

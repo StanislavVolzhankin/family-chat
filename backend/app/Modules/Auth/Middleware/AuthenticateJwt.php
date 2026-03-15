@@ -33,6 +33,7 @@ class AuthenticateJwt
         }
 
         $request->attributes->set('auth_user', $user);
+        auth()->setUser($user);
 
         return $next($request);
     }
