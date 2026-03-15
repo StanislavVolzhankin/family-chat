@@ -108,6 +108,12 @@
 - 7 новых тестов `OnlineUsers.test.jsx`, 3 новых `PresenceChannelAuthTest`, итого 119 frontend + 75 backend тестов — все зелёные
 - Урок: при переходе с публичного канала на presence — `authEndpoint` и совместимость middleware становятся критичными; Broadcasting auth требует `Auth::user()`, а не только `$request->attributes`
 
+### M12 Locale Switcher в хедере ✅ (merged into develop, PR #39)
+- Переключатель RU/EN вынесен в переиспользуемый компонент `LangSwitcher`
+- `AppHeader`: добавлен `LangSwitcher` — переключение языка доступно на всех авторизованных страницах
+- `LoginPage`: инлайн-кнопки заменены на `<LangSwitcher />`
+- 7 новых тестов (`LangSwitcher.test.jsx` + AppHeader), итого 126 frontend тестов — все зелёные
+
 ### M10 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
