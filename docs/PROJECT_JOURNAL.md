@@ -74,12 +74,15 @@
 - Локализация RU/EN: `chat.status.offline` (с `{{attempt}}/{{max}}`), `chat.status.failed`
 - 57 backend тестов (4 новых для CleanupOldMessages), 98 frontend тестов — все зелёные
 
-### M5 Чат-бот Lulu
-- Обращение через `@Lulu` в общем чате
-- Bot модуль (BotService + OpenAI API)
-- Поле `is_bot` в таблице users, seeder для Lulu
-- Ответы хранятся в БД, видны всем в чате
-- Иконка бота в UI
+### M5 Чат-бот Lulu ✅ (merged into develop, PR #28)
+- Обращение через `@Lulu` в общем чате (case-sensitive)
+- `BotService`: detect + dispatchIfNeeded + reply; асинхронный `ProcessBotReply` job через Laravel Queue (database driver)
+- Поле `is_bot` в таблице users, seeder для Lulu (role=child, is_bot=true, random password)
+- Ответы сохраняются в БД и рассылаются всем через WebSocket как обычные сообщения
+- Иконка 🤖 в UI для bot-сообщений
+- **M5b — LLM Provider Abstraction** (PR #27): интерфейс `LlmProvider`, `GeminiProvider` (gemini-2.5-flash) + `OpenAiProvider`, переключение через `LLM_PROVIDER` в `.env`
+- 72 backend теста, все зелёные
+- Уроки: `gemini-1.5-flash` и `gemini-2.0-flash` недоступны на free tier (limit: 0 / 404); рабочая модель — `gemini-2.5-flash`; после смены кода в queue worker — обязательно `docker restart family-chat-queue-1` + `php artisan config:clear`
 
 ### M6 Деплой
 - Docker + `fly.toml` для Fly.io
