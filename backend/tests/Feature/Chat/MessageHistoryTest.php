@@ -68,7 +68,7 @@ class MessageHistoryTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'user_id', 'username', 'content', 'created_at'],
+                    '*' => ['id', 'user_id', 'username', 'is_bot', 'content', 'created_at'],
                 ],
             ])
             ->assertJsonPath('data.0.username', 'alice')

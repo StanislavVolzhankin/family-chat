@@ -44,11 +44,16 @@
     "actions": "Actions",
     "errors": {
       "username_taken": "Username is already taken",
+      "username_reserved": "This username is reserved",
       "user_not_found": "User not found",
       "cannot_modify_parent": "Cannot modify administrator",
       "cannot_deactivate_self": "Cannot deactivate your own account",
       "password_too_short": "Password must be at least 6 characters"
     }
+  },
+  "bot": {
+    "unavailable": "Lulu is temporarily unavailable. Please try again later.",
+    "badge": "bot"
   },
   "logout": "Log Out",
   "errors": {

@@ -38,6 +38,11 @@
   flex-shrink: 0;
 }
 
+.botBadge {
+  margin-left: 4px;
+  font-style: normal;
+}
+
 .messageContent {
   word-break: break-word;
 }

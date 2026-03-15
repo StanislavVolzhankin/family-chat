@@ -68,7 +68,10 @@ function ChatPage() {
         <div className={styles.messageList}>
           {messages.map(msg => (
             <div key={msg.id} className={styles.message}>
-              <span className={styles.username}>{msg.username}</span>
+              <span className={styles.username}>
+                {msg.username}
+                {msg.is_bot && <span className={styles.botBadge} title={t.bot?.badge}>🤖</span>}
+              </span>
               <span className={styles.messageContent}>{msg.content}</span>
               <span className={styles.time}>{formatTime(msg.created_at)}</span>
             </div>

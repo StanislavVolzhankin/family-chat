@@ -44,11 +44,16 @@
     "actions": "Действия",
     "errors": {
       "username_taken": "Логин уже занят",
+      "username_reserved": "Это имя зарезервировано",
       "user_not_found": "Пользователь не найден",
       "cannot_modify_parent": "Нельзя изменять администратора",
       "cannot_deactivate_self": "Нельзя деактивировать свой аккаунт",
       "password_too_short": "Пароль должен быть не менее 6 символов"
     }
+  },
+  "bot": {
+    "unavailable": "Lulu временно недоступна. Попробуйте позже.",
+    "badge": "бот"
   },
   "logout": "Выйти",
   "errors": {

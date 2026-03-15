@@ -9,6 +9,10 @@ class UserService
 {
     public function createChild(string $username, string $password): array
     {
+        if ($username === config('bot.name')) {
+            throw new \InvalidArgumentException('username_reserved');
+        }
+
         if (User::where('username', $username)->exists()) {
             throw new \InvalidArgumentException('username_taken');
         }

@@ -13,6 +13,7 @@ class MessageSent implements ShouldBroadcastNow
         public readonly string $username,
         public readonly string $content,
         public readonly string $created_at,
+        public readonly bool   $is_bot = false,
     ) {}
 
     public function broadcastOn(): Channel

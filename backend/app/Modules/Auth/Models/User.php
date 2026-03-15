@@ -13,6 +13,7 @@ class User extends Authenticatable
         'password_hash',
         'role',
         'is_active',
+        'is_bot',
     ];
 
     protected $hidden = [
@@ -21,6 +22,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_bot'    => 'boolean',
     ];
 
     /**

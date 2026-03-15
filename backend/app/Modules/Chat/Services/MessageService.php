@@ -18,6 +18,7 @@ class MessageService
                 'messages.id',
                 'messages.user_id',
                 'users.username',
+                'users.is_bot',
                 'messages.content',
                 'messages.created_at',
             ])
@@ -26,6 +27,7 @@ class MessageService
                 'id'         => $m->id,
                 'user_id'    => $m->user_id,
                 'username'   => $m->username,
+                'is_bot'     => (bool) $m->is_bot,
                 'content'    => $m->content,
                 'created_at' => \Carbon\Carbon::parse($m->created_at)->toISOString(),
             ])
@@ -58,12 +60,13 @@ class MessageService
             'created_at' => now(),
         ]);
 
-        $username = $message->user()->value('username');
+        $user = $message->user()->first();
 
         $payload = [
             'id'         => $message->id,
             'user_id'    => $message->user_id,
-            'username'   => $username,
+            'username'   => $user->username,
+            'is_bot'     => (bool) $user->is_bot,
             'content'    => $message->content,
             'created_at' => \Carbon\Carbon::parse($message->created_at)->toISOString(),
         ];
