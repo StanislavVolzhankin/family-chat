@@ -19,6 +19,7 @@ function AppHeader() {
 
   return (
     <header className={styles.header}>
+      <span className={styles.brand}>🚀 Family Chat</span>
       {user?.role === 'parent' && (
         <nav className={styles.nav}>
           <NavLink to="/chat" className={navClass}>{t.nav.chat}</NavLink>

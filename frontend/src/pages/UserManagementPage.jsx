@@ -69,7 +69,7 @@ function UserManagementPage() {
   }
 
   return (
-    <>
+    <div className={styles.page}>
       <AppHeader />
       <div className={styles.container}>
       <h1 className={styles.title}>{t.users.title}</h1>
@@ -117,7 +117,11 @@ function UserManagementPage() {
               <tr key={user.id}>
                 <td>{user.username}</td>
                 <td>{user.role}</td>
-                <td>{user.is_active ? t.users.active : t.users.inactive}</td>
+                <td>
+                  <span className={`${styles.badge} ${user.is_active ? styles.badgeActive : styles.badgeInactive}`}>
+                    {user.is_active ? t.users.active : t.users.inactive}
+                  </span>
+                </td>
                 <td>
                   {user.role !== 'parent' && (
                     <>
@@ -160,7 +164,7 @@ function UserManagementPage() {
         </table>
       </section>
     </div>
-    </>
+    </div>
   )
 }
 

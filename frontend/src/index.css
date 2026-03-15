@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-surface: #16213e;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --text-primary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #2d2d4e;
+  --bubble-own: #4338ca;
+  --bubble-other: #1e293b;
+  --bubble-bot: #1e3a2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Nunito', sans-serif;
+}

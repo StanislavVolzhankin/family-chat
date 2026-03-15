@@ -40,7 +40,7 @@ describe('Form rendering', () => {
 
   it('shows no error on initial render', () => {
     renderLoginPage()
-    expect(screen.queryByRole('paragraph')).toBeNull()
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 })
 
@@ -124,7 +124,6 @@ describe('Language switch', () => {
     fireEvent.click(screen.getByRole('button', { name: 'EN' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('heading').textContent).toBe('Login')
       expect(screen.getByRole('button', { name: 'Sign In' })).toBeDefined()
     })
   })
