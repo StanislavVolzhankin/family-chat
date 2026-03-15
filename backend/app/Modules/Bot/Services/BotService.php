@@ -3,6 +3,7 @@
 namespace App\Modules\Bot\Services;
 
 use App\Modules\Auth\Models\User;
+use App\Modules\Bot\Contracts\LlmProvider;
 use App\Modules\Bot\Jobs\ProcessBotReply;
 use App\Modules\Chat\Events\MessageSent;
 use App\Modules\Chat\Models\Message;
@@ -10,6 +11,8 @@ use Carbon\Carbon;
 
 class BotService
 {
+    public function __construct(private LlmProvider $llm) {}
+
     public function detect(string $content): bool
     {
         return str_contains($content, '@' . config('bot.name'));
@@ -30,7 +33,11 @@ class BotService
 
     public function reply(string $question, int $botUserId): void
     {
-        $content = $this->fetchReply($question);
+        try {
+            $content = $this->llm->chat($question);
+        } catch (\Throwable) {
+            $content = config('bot.unavailable_message');
+        }
 
         $message = Message::create([
             'user_id'    => $botUserId,
@@ -48,24 +55,5 @@ class BotService
             created_at: Carbon::parse($message->created_at)->toISOString(),
             is_bot:     true,
         ));
-    }
-
-    protected function fetchReply(string $question): string
-    {
-        try {
-            $client = \OpenAI::client(config('bot.openai_key'));
-
-            $response = $client->chat()->create([
-                'model'    => config('bot.openai_model'),
-                'messages' => [
-                    ['role' => 'system', 'content' => config('bot.system_prompt')],
-                    ['role' => 'user',   'content' => $question],
-                ],
-            ]);
-
-            return $response->choices[0]->message->content;
-        } catch (\Throwable) {
-            return config('bot.unavailable_message');
-        }
     }
 }
