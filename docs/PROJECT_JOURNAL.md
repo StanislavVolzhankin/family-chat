@@ -100,6 +100,14 @@
 - `UserManagementPage`: тёмная таблица, цветные бейджи статуса (активен/неактивен)
 - 107 frontend тестов — все зелёные
 
+### M8 Список онлайн-пользователей (Presence Channel) ✅ (merged into develop, PR #36)
+- Presence Channel вместо публичного: `echo.join('chat')`, события `here/joining/leaving`
+- Сайдбар `OnlineUsers` справа от ленты: Lulu всегда первая (из `VITE_BOT_NAME`), боты из presence фильтруются, остальные по алфавиту
+- `POST /api/broadcasting/auth` под `auth.jwt` middleware (дефолтный Laravel маршрут использует `web` и несовместим с JWT)
+- `AuthenticateJwt` дополнен `auth()->setUser($user)` для совместимости с Laravel Broadcasting
+- 7 новых тестов `OnlineUsers.test.jsx`, 3 новых `PresenceChannelAuthTest`, итого 119 frontend + 75 backend тестов — все зелёные
+- Урок: при переходе с публичного канала на presence — `authEndpoint` и совместимость middleware становятся критичными; Broadcasting auth требует `Auth::user()`, а не только `$request->attributes`
+
 ### M10 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
