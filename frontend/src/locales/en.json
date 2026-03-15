@@ -55,6 +55,11 @@
     "unavailable": "Lulu is temporarily unavailable. Please try again later.",
     "badge": "bot"
   },
+  "nav": {
+    "chat": "Chat",
+    "users": "User Management",
+    "logout": "Log Out"
+  },
   "logout": "Log Out",
   "errors": {
     "service_unavailable": "Service temporarily unavailable, please try again later"

@@ -16,6 +16,7 @@ vi.mock('../utils/api', () => ({
 vi.mock('../utils/auth', () => ({
   getToken: vi.fn(() => 'test-token'),
   clearAuth: vi.fn(),
+  getUser: vi.fn(() => ({ username: 'admin', role: 'parent' })),
 }))
 
 vi.mock('react-router-dom', async (importOriginal) => {
