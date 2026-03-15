@@ -69,11 +69,24 @@ cd frontend && npm run dev
 
 ## Тесты
 
+### Backend
+
 ```bash
 docker exec family-chat-app-1 php artisan test
 ```
 
 Тесты используют отдельную БД `family_chat_test` и не трогают данные в `family_chat`.
+
+> **Важно:** запускать backend тесты только через `docker exec`, не локально.
+> Локальный PHP не имеет доступа к hostname `db` (Docker-сервис PostgreSQL) —
+> каждый тест будет висеть на таймауте подключения (~15–25 мин на весь прогон).
+
+### Frontend
+
+```bash
+cd frontend
+npx vitest run
+```
 
 ---
 
