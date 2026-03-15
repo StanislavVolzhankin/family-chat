@@ -114,6 +114,15 @@
 - `LoginPage`: инлайн-кнопки заменены на `<LangSwitcher />`
 - 7 новых тестов (`LangSwitcher.test.jsx` + AppHeader), итого 126 frontend тестов — все зелёные
 
+### M9 Chat Improvements ✅ (merged into develop, PR #42)
+- Queue worker sleep 3s → 1s: задержка ответа бота сокращена
+- Отправка сообщения по Enter (Shift+Enter = перенос строки)
+- Переносы строк отображаются в пузырях (`white-space: pre-wrap`)
+- Новые сообщения отображаются снизу (убран `flex-direction: column-reverse`)
+- Автоскролл вниз при загрузке истории и новых сообщениях
+- Бейдж "↓ новое сообщение" при получении сообщения в момент когда пользователь проскроллил вверх
+- 131 frontend тест — все зелёные
+
 ### M10 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
