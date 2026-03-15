@@ -34,7 +34,14 @@
 
 **Lulu:**
 - Бот не имеет WebSocket-соединения
-- Frontend получает данные Lulu из существующего auth-контекста или отдельным запросом и всегда добавляет её в список
+- Frontend добавляет фиксированную запись Lulu из `VITE_BOT_NAME` env-переменной (не делать отдельный API-запрос)
+
+### Архитектурные уточнения (Architect Agent)
+
+- `MessageSent.php`: тип возврата в сигнатуре остаётся `Channel` (базовый класс) — `PresenceChannel` от него наследует, смена безопасна
+- `channels.php`: авторизация обязательна — без неё Reverb вернёт 403 при подключении к presence channel
+- `useWebSocket.js`: переход с `echo.channel()` на `echo.join()` меняет цепочку — необходимо обновить мок в тестах (ключевой риск)
+- Lulu: имя берётся из `VITE_BOT_NAME` (уже есть в `.env`)
 
 ---
 
@@ -58,7 +65,9 @@ Broadcast::channel('chat', function ($user) {
 **`app/Modules/Chat/Events/MessageSent.php`:**
 - Изменить `broadcastOn()`: вернуть `new PresenceChannel('chat')` вместо `new Channel('chat')`
 
-**Broadcasting auth endpoint** уже существует (`POST /api/broadcasting/auth`) — изменений не требует.
+**Broadcasting auth endpoint** (`POST /api/broadcasting/auth`) — добавлен явно в `chat.php` routes под `auth.jwt` middleware (дефолтный Laravel маршрут использует `web` middleware и не совместим с JWT).
+
+**`AuthenticateJwt.php`** — добавлен вызов `auth()->setUser($user)` чтобы `Auth::user()` был доступен для Laravel Broadcasting (до этого только `$request->attributes` заполнялся).
 
 ---
 
@@ -122,30 +131,40 @@ Broadcast::channel('chat', function ($user) {
 
 ## Порядок реализации
 
-- **M8.1** Backend: presence channel авторизация + изменение MessageSent
-- **M8.2** Frontend: useWebSocket — переход на presence channel + onlineUsers
-- **M8.3** Frontend: OnlineUsers компонент
-- **M8.4** Frontend: ChatPage layout с сайдбаром
-- **M8.5** Frontend: локализация online_users.*
-- QA + Reviewer + PR в develop
+- **M8.1** Backend: presence channel авторизация + изменение MessageSent ✅
+- **M8.2** Frontend: useWebSocket — переход на presence channel + onlineUsers ✅
+- **M8.3** Frontend: OnlineUsers компонент ✅
+- **M8.4** Frontend: ChatPage layout с сайдбаром ✅
+- **M8.5** Frontend: локализация online_users.* ✅
+- **M8.6** Тесты: OnlineUsers.test.jsx, PresenceChannelAuthTest, обновление ChatPage.test.jsx ✅
+- **M8.7** Bugfix: authEndpoint + AuthenticateJwt + POST /api/broadcasting/auth ✅
+- QA + Reviewer + PR в develop ⏳
 
 ---
 
 ## Файлы которые затрагиваем
 
 ### Backend (изменяем)
-- `app/Modules/Chat/Events/MessageSent.php` — `PresenceChannel` вместо `Channel`
-- `routes/channels.php` — авторизация presence channel
+- `app/Modules/Chat/Events/MessageSent.php` — `PresenceChannel` вместо `Channel` ✅
+- `routes/channels.php` — авторизация presence channel ✅
+- `app/Modules/Auth/Middleware/AuthenticateJwt.php` — добавлен `auth()->setUser($user)` ✅
+- `app/Modules/Chat/Routes/chat.php` — добавлен `POST /api/broadcasting/auth` ✅
+- `app/Providers/AppServiceProvider.php` — добавлен `Broadcast::routes([...])` (вспомогательно) ✅
+
+### Backend (новые)
+- `tests/Feature/Chat/PresenceChannelAuthTest.php` ✅
 
 ### Frontend (изменяем)
-- `src/hooks/useWebSocket.js` — presence channel, onlineUsers
-- `src/hooks/useWebSocket.test.js` — тесты для presence событий
-- `src/pages/ChatPage.jsx` — layout с сайдбаром
-- `src/pages/ChatPage.module.css` — flex layout
-- `src/locales/ru.json` — ключи `online_users.*`
-- `src/locales/en.json` — ключи `online_users.*`
+- `src/hooks/useWebSocket.js` — presence channel, onlineUsers, authEndpoint ✅
+- `src/hooks/useWebSocket.test.js` — тесты для presence событий ✅
+- `src/pages/ChatPage.jsx` — layout с сайдбаром ✅
+- `src/pages/ChatPage.module.css` — flex layout ✅
+- `src/pages/ChatPage.test.jsx` — обновлены моки и тесты под presence ✅
+- `src/locales/ru.json` — ключи `online_users.*` ✅
+- `src/locales/en.json` — ключи `online_users.*` ✅
+- `.env.example` — добавлен `VITE_BOT_NAME` ✅
 
 ### Frontend (новые)
-- `src/components/OnlineUsers.jsx`
-- `src/components/OnlineUsers.module.css`
-- `src/components/OnlineUsers.test.jsx`
+- `src/components/OnlineUsers.jsx` ✅
+- `src/components/OnlineUsers.module.css` ✅
+- `src/components/OnlineUsers.test.jsx` ✅

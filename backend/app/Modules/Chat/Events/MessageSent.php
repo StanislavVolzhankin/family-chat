@@ -3,6 +3,7 @@
 namespace App\Modules\Chat\Events;
 
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class MessageSent implements ShouldBroadcastNow
@@ -18,7 +19,7 @@ class MessageSent implements ShouldBroadcastNow
 
     public function broadcastOn(): Channel
     {
-        return new Channel('chat');
+        return new PresenceChannel('chat');
     }
 
     public function broadcastAs(): string

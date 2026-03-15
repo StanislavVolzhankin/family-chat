@@ -5,6 +5,12 @@
   background: var(--bg-base);
 }
 
+.chatLayout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
 .container {
   display: flex;
   flex-direction: column;

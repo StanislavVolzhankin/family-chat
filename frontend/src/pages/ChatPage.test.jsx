@@ -41,7 +41,7 @@ function renderChatPage() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useWebSocket.mockReturnValue({ status: 'online' })
+  useWebSocket.mockReturnValue({ status: 'online', onlineUsers: [] })
   getMessages.mockResolvedValue([])
 })
 
@@ -57,7 +57,8 @@ describe('ChatPage rendering', () => {
   it('shows online status', async () => {
     renderChatPage()
     await waitFor(() => {
-      expect(screen.getByText('В сети')).toBeDefined()
+      // 'В сети' appears in both the status bar and the sidebar title
+      expect(screen.getAllByText('В сети').length).toBeGreaterThanOrEqual(1)
     })
   })
 
@@ -93,7 +94,7 @@ describe('ChatPage rendering', () => {
 
 describe('Status states', () => {
   it('disables textarea and send button when offline', async () => {
-    useWebSocket.mockReturnValue({ status: 'offline', attempt: 2, maxAttempts: 10 })
+    useWebSocket.mockReturnValue({ status: 'offline', attempt: 2, maxAttempts: 10, onlineUsers: [] })
     renderChatPage()
     await waitFor(() => {
       expect(screen.getByText('Переподключение… попытка 2 из 10')).toBeDefined()
@@ -103,7 +104,7 @@ describe('Status states', () => {
   })
 
   it('disables send button when connecting', async () => {
-    useWebSocket.mockReturnValue({ status: 'connecting' })
+    useWebSocket.mockReturnValue({ status: 'connecting', onlineUsers: [] })
     renderChatPage()
     await waitFor(() => {
       expect(screen.getByText('Подключение...')).toBeDefined()
@@ -204,7 +205,8 @@ describe('Bot messages', () => {
     ])
     renderChatPage()
     await waitFor(() => {
-      expect(screen.getByText('🤖')).toBeDefined()
+      // sidebar always has 1 Lulu 🤖, message list adds another one — total 2
+      expect(screen.getAllByText('🤖').length).toBe(2)
     })
   })
 
@@ -214,7 +216,30 @@ describe('Bot messages', () => {
     ])
     renderChatPage()
     await waitFor(() => screen.getByText('Привет!'))
-    expect(screen.queryByText('🤖')).toBeNull()
+    // only sidebar Lulu icon remains, no badge in message list
+    expect(screen.getAllByText('🤖').length).toBe(1)
+  })
+})
+
+describe('Online users sidebar', () => {
+  it('renders online users sidebar with Lulu', async () => {
+    useWebSocket.mockReturnValue({ status: 'online', onlineUsers: [] })
+    renderChatPage()
+    await waitFor(() => {
+      expect(screen.getAllByText('В сети').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('Lulu')).toBeDefined()
+    })
+  })
+
+  it('shows online user from presence in sidebar', async () => {
+    useWebSocket.mockReturnValue({
+      status: 'online',
+      onlineUsers: [{ id: 1, username: 'alice', is_bot: false }],
+    })
+    renderChatPage()
+    await waitFor(() => {
+      expect(screen.getByText('alice')).toBeDefined()
+    })
   })
 })
 
@@ -223,7 +248,7 @@ describe('New messages from WebSocket', () => {
     let capturedOnMessage
     useWebSocket.mockImplementation((_token, onMessage) => {
       capturedOnMessage = onMessage
-      return { status: 'online' }
+      return { status: 'online', onlineUsers: [] }
     })
     getMessages.mockResolvedValue([])
     renderChatPage()
@@ -246,7 +271,7 @@ describe('New messages from WebSocket', () => {
     let capturedOnMessage
     useWebSocket.mockImplementation((_token, onMessage) => {
       capturedOnMessage = onMessage
-      return { status: 'online' }
+      return { status: 'online', onlineUsers: [] }
     })
 
     renderChatPage()

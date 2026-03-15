@@ -17,6 +17,7 @@ function getDelay(attempt) {
 export function useWebSocket(token, onMessage) {
   const [status, setStatus] = useState('connecting')
   const [attempt, setAttempt] = useState(0)
+  const [onlineUsers, setOnlineUsers] = useState([])
   const onMessageRef = useRef(onMessage)
   const attemptRef = useRef(0)
   const timeoutRef = useRef(null)
@@ -29,7 +30,7 @@ export function useWebSocket(token, onMessage) {
 
   const disconnect = useCallback(() => {
     if (echoRef.current) {
-      echoRef.current.leaveChannel('chat')
+      echoRef.current.leaveChannel('presence-chat')
       echoRef.current.disconnect()
       echoRef.current = null
     }
@@ -93,10 +94,14 @@ export function useWebSocket(token, onMessage) {
       }
     })
 
-    echo.channel('chat').listen('.new_message', (msg) => {
-      lastTimestampRef.current = msg.created_at
-      onMessageRef.current(msg)
-    })
+    echo.join('chat')
+      .here(users => setOnlineUsers(users))
+      .joining(user => setOnlineUsers(prev => [...prev.filter(u => u.id !== user.id), user]))
+      .leaving(user => setOnlineUsers(prev => prev.filter(u => u.id !== user.id)))
+      .listen('.new_message', (msg) => {
+        lastTimestampRef.current = msg.created_at
+        onMessageRef.current(msg)
+      })
   }, [token, disconnect])
 
   useEffect(() => {
@@ -113,5 +118,5 @@ export function useWebSocket(token, onMessage) {
     }
   }, [token, connect, disconnect])
 
-  return { status, attempt, maxAttempts: MAX_ATTEMPTS }
+  return { status, attempt, maxAttempts: MAX_ATTEMPTS, onlineUsers }
 }
