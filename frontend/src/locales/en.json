@@ -20,6 +20,7 @@
       "offline": "Reconnecting… attempt {{attempt}} of {{max}}",
       "failed": "Chat unavailable. Please refresh the page."
     },
+    "new_message": "↓ new message",
     "errors": {
       "rate_limit_exceeded": "Too fast, wait a second",
       "content_too_long": "Message too long (max 150 characters)",

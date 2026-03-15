@@ -184,17 +184,47 @@ describe('Sending messages', () => {
     })
   })
 
-  it('sends on Ctrl+Enter', async () => {
+  it('sends on Enter', async () => {
     sendMessage.mockResolvedValue({ id: 11, user_id: 1, username: 'alice', content: 'test', created_at: '2024-01-01T10:00:00Z' })
     renderChatPage()
     await waitFor(() => screen.getByRole('textbox'))
 
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'test' } })
-    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', ctrlKey: true })
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' })
 
     await waitFor(() => {
       expect(sendMessage).toHaveBeenCalledWith('test')
     })
+  })
+
+  it('does not send on Shift+Enter', async () => {
+    renderChatPage()
+    await waitFor(() => screen.getByRole('textbox'))
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'test' } })
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter', shiftKey: true })
+
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('does not send on Enter when content is empty', async () => {
+    renderChatPage()
+    await waitFor(() => screen.getByRole('textbox'))
+
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' })
+
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('does not send on Enter when status is not online', async () => {
+    useWebSocket.mockReturnValue({ status: 'offline', attempt: 1, maxAttempts: 10, onlineUsers: [] })
+    renderChatPage()
+    await waitFor(() => screen.getByRole('textbox'))
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'test' } })
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' })
+
+    expect(sendMessage).not.toHaveBeenCalled()
   })
 })
 
@@ -261,6 +291,59 @@ describe('New messages from WebSocket', () => {
 
     await waitFor(() => {
       expect(screen.getByText('from ws')).toBeDefined()
+    })
+  })
+
+  it('shows new message badge when scrolled up and new message arrives', async () => {
+    let capturedOnMessage
+    useWebSocket.mockImplementation((_token, onMessage) => {
+      capturedOnMessage = onMessage
+      return { status: 'online', onlineUsers: [] }
+    })
+    getMessages.mockResolvedValue([])
+    renderChatPage()
+    await waitFor(() => expect(capturedOnMessage).toBeDefined())
+
+    const messageList = document.querySelector('[class*="messageList"]')
+    Object.defineProperty(messageList, 'scrollHeight', { value: 1000, configurable: true })
+    Object.defineProperty(messageList, 'scrollTop', { value: 0, configurable: true })
+    Object.defineProperty(messageList, 'clientHeight', { value: 500, configurable: true })
+    fireEvent.scroll(messageList)
+
+    act(() => {
+      capturedOnMessage({ id: 99, user_id: 2, username: 'bob', content: 'new msg', created_at: '2024-01-01T11:00:00Z' })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('↓ новое сообщение')).toBeDefined()
+    })
+  })
+
+  it('hides badge when clicked', async () => {
+    let capturedOnMessage
+    useWebSocket.mockImplementation((_token, onMessage) => {
+      capturedOnMessage = onMessage
+      return { status: 'online', onlineUsers: [] }
+    })
+    getMessages.mockResolvedValue([])
+    renderChatPage()
+    await waitFor(() => expect(capturedOnMessage).toBeDefined())
+
+    const messageList = document.querySelector('[class*="messageList"]')
+    Object.defineProperty(messageList, 'scrollHeight', { value: 1000, configurable: true })
+    Object.defineProperty(messageList, 'scrollTop', { value: 0, configurable: true, writable: true })
+    Object.defineProperty(messageList, 'clientHeight', { value: 500, configurable: true })
+    fireEvent.scroll(messageList)
+
+    act(() => {
+      capturedOnMessage({ id: 99, user_id: 2, username: 'bob', content: 'new msg', created_at: '2024-01-01T11:00:00Z' })
+    })
+
+    await waitFor(() => screen.getByText('↓ новое сообщение'))
+    fireEvent.click(screen.getByText('↓ новое сообщение'))
+
+    await waitFor(() => {
+      expect(screen.queryByText('↓ новое сообщение')).toBeNull()
     })
   })
 
