@@ -84,6 +84,13 @@
 - 72 backend теста, все зелёные
 - Уроки: `gemini-1.5-flash` и `gemini-2.0-flash` недоступны на free tier (limit: 0 / 404); рабочая модель — `gemini-2.5-flash`; после смены кода в queue worker — обязательно `docker restart family-chat-queue-1` + `php artisan config:clear`
 
+### M7 Навигационное меню администратора ✅ (merged into develop, PR #30)
+- `AppHeader` переработан: NavLink меню (Чат / Менеджмент пользователей) только для `parent`
+- `child` видит хедер без меню (только имя + Logout)
+- Имя пользователя отображается в хедере для всех ролей
+- Локализация `nav.*` ключей (RU/EN)
+- 9 новых тестов AppHeader, итого 107 frontend тестов — все зелёные
+
 ### M10 Деплой
 - Docker + `fly.toml` для Fly.io
 - Vercel конфиг для React
