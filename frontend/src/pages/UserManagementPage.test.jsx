@@ -10,7 +10,10 @@ vi.mock('../utils/api', () => ({
   updateUser: vi.fn(),
 }))
 
-vi.mock('../utils/auth', () => ({ clearAuth: vi.fn() }))
+vi.mock('../utils/auth', () => ({
+  clearAuth: vi.fn(),
+  getUser: vi.fn(() => ({ username: 'admin', role: 'parent' })),
+}))
 
 import { getUsers, createUser, updateUser } from '../utils/api'
 
