@@ -53,9 +53,10 @@
 
 ## Порядок реализации
 
-- **M12.1** Вынести переключатель в `LangSwitcher` компонент
-- **M12.2** Использовать `LangSwitcher` в `LoginPage` и `AppHeader`
-- QA + Reviewer + PR в develop
+- **M12.1** ✅ Вынести переключатель в `LangSwitcher` компонент
+- **M12.2** ✅ Использовать `LangSwitcher` в `LoginPage` и `AppHeader`
+- ✅ QA + Reviewer — все 126 тестов прошли
+- PR в develop — ожидает разрешения
 
 ---
 

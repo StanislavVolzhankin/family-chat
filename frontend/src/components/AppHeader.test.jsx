@@ -92,6 +92,23 @@ describe('AppHeader — child role', () => {
   })
 })
 
+describe('AppHeader — lang switcher', () => {
+  beforeEach(() => {
+    getUser.mockReturnValue({ username: 'admin', role: 'parent' })
+  })
+
+  it('shows RU and EN buttons', () => {
+    renderHeader()
+    expect(screen.getByRole('button', { name: 'RU' })).toBeDefined()
+    expect(screen.getByRole('button', { name: 'EN' })).toBeDefined()
+  })
+
+  it('RU button is disabled by default', () => {
+    renderHeader()
+    expect(screen.getByRole('button', { name: 'RU' }).disabled).toBe(true)
+  })
+})
+
 describe('AppHeader — logout', () => {
   beforeEach(() => {
     getUser.mockReturnValue({ username: 'admin', role: 'parent' })
