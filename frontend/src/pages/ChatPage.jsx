@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import AppHeader from '../components/AppHeader'
 import { useLang } from '../context/LangContext'
-import { getToken } from '../utils/auth'
+import { getToken, getUser } from '../utils/auth'
 import { getMessages, sendMessage } from '../utils/api'
 import { useWebSocket } from '../hooks/useWebSocket'
 import styles from './ChatPage.module.css'
@@ -13,6 +13,7 @@ function formatTime(isoString) {
 function ChatPage() {
   const { t } = useLang()
   const token = getToken()
+  const currentUser = getUser()
   const [messages, setMessages] = useState([])
   const [content, setContent] = useState('')
   const [sendError, setSendError] = useState(null)
@@ -52,30 +53,40 @@ function ChatPage() {
   const canSend = status === 'online' && !sending && content.trim().length > 0
   const inputDisabled = status !== 'online' || sending
 
+  function getMessageType(msg) {
+    if (msg.is_bot) return 'bot'
+    if (msg.user_id === currentUser?.id) return 'own'
+    return 'other'
+  }
+
+  const statusText = status === 'offline'
+    ? t.chat.status.offline.replace('{{attempt}}', attempt).replace('{{max}}', maxAttempts)
+    : t.chat.status[status]
+
   return (
-    <>
+    <div className={styles.page}>
       <AppHeader />
       <div className={styles.container}>
-        <div className={styles.statusBar}>
-          <span className={styles[`status_${status}`]}>
-            {status === 'offline'
-              ? t.chat.status.offline
-                  .replace('{{attempt}}', attempt)
-                  .replace('{{max}}', maxAttempts)
-              : t.chat.status[status]}
-          </span>
+        <div className={`${styles.statusBar} ${styles[`status_${status}`]}`}>
+          <span className={styles.statusDot} />
+          <span>{statusText}</span>
         </div>
         <div className={styles.messageList}>
-          {messages.map(msg => (
-            <div key={msg.id} className={styles.message}>
-              <span className={styles.username}>
-                {msg.username}
-                {msg.is_bot && <span className={styles.botBadge} title={t.bot?.badge}>🤖</span>}
-              </span>
-              <span className={styles.messageContent}>{msg.content}</span>
-              <span className={styles.time}>{formatTime(msg.created_at)}</span>
-            </div>
-          ))}
+          {messages.map(msg => {
+            const type = getMessageType(msg)
+            return (
+              <div key={msg.id} className={`${styles.messageWrapper} ${styles[type]}`}>
+                <div className={styles.messageMeta}>
+                  <span className={styles.metaUsername}>
+                    {msg.username}
+                    {msg.is_bot && <span className={styles.botBadge}> 🤖</span>}
+                  </span>
+                  <span className={styles.metaTime}>{formatTime(msg.created_at)}</span>
+                </div>
+                <div className={styles.bubble}>{msg.content}</div>
+              </div>
+            )
+          })}
         </div>
         <form onSubmit={handleSend} className={styles.form}>
           {sendError && <p className={styles.error} role="alert">{sendError}</p>}
@@ -100,7 +111,7 @@ function ChatPage() {
           </div>
         </form>
       </div>
-    </>
+    </div>
   )
 }
 

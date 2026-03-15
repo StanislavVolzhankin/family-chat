@@ -38,7 +38,9 @@ function LoginPage() {
           <button onClick={() => setLang('en')} disabled={lang === 'en'}>EN</button>
         </div>
 
-        <h1 className={styles.title}>{t.login.title}</h1>
+        <div className={styles.logo}>🚀</div>
+        <h1 className={styles.appName}>Family Chat</h1>
+        <p className={styles.title}>{t.login.title}</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <label className={styles.label}>
@@ -65,7 +67,7 @@ function LoginPage() {
             />
           </label>
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
 
           <button type="submit" disabled={loading} className={styles.button}>
             {loading ? '...' : t.login.submit}
