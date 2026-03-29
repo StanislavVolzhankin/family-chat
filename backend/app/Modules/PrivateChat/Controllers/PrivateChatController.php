@@ -4,6 +4,7 @@ namespace App\Modules\PrivateChat\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bot\Jobs\ProcessPrivateBotReply;
+use App\Modules\PrivateChat\Events\PrivateChatMembersUpdated;
 use App\Modules\PrivateChat\Services\PrivateChatMessageService;
 use App\Modules\PrivateChat\Services\PrivateChatService;
 use Illuminate\Http\Request;
@@ -131,6 +132,8 @@ class PrivateChatController extends Controller
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
+        broadcast(new PrivateChatMembersUpdated($chatId, $result['members']));
+
         return response()->json(['data' => $result]);
     }
 
@@ -151,6 +154,8 @@ class PrivateChatController extends Controller
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
+
+        broadcast(new PrivateChatMembersUpdated($chatId, $result['members']));
 
         return response()->json(['data' => $result]);
     }

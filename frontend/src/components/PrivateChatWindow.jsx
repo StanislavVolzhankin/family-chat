@@ -7,7 +7,7 @@ function formatTime(isoString) {
   return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Minsk' })
 }
 
-function PrivateChatWindow({ chatId, partnerName, currentUserId, echoRef, wsStatus, index, onClose }) {
+function PrivateChatWindow({ chatId, partnerName, hasLulu, currentUserId, echoRef, wsStatus, index, onClose, onAddLulu, onRemoveLulu }) {
   const { t } = useLang()
   const { messages, sending, sendError, send } = usePrivateChat(chatId, echoRef, wsStatus)
   const [content, setContent] = useState('')
@@ -40,7 +40,21 @@ function PrivateChatWindow({ chatId, partnerName, currentUserId, echoRef, wsStat
   return (
     <div className={styles.window} style={{ right: rightOffset }}>
       <div className={styles.header}>
-        <span className={styles.title}>{partnerName}</span>
+        {partnerName ? (
+          <>
+            <span className={styles.title}>{partnerName}</span>
+            {hasLulu ? (
+              <span className={styles.luluTag}>
+                Lulu 🤖
+                <button className={styles.removeLuluBtn} onClick={onRemoveLulu} aria-label="Remove Lulu">×</button>
+              </span>
+            ) : (
+              <button className={styles.addLuluBtn} onClick={onAddLulu}>+ Lulu</button>
+            )}
+          </>
+        ) : (
+          <span className={styles.title}>Lulu 🤖</span>
+        )}
         <button className={styles.closeBtn} onClick={onClose} aria-label={t.private_chat.close}>✕</button>
       </div>
 
