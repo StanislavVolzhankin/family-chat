@@ -46,10 +46,10 @@ function PrivateChatWindow({ chatId, partnerName, hasLulu, currentUserId, echoRe
             {hasLulu ? (
               <span className={styles.luluTag}>
                 Lulu 🤖
-                <button className={styles.removeLuluBtn} onClick={onRemoveLulu} aria-label="Remove Lulu">×</button>
+                <button className={styles.removeLuluBtn} onClick={onRemoveLulu} aria-label={t.private_chat.remove_lulu}>×</button>
               </span>
             ) : (
-              <button className={styles.addLuluBtn} onClick={onAddLulu}>+ Lulu</button>
+              <button className={styles.addLuluBtn} onClick={onAddLulu}>{t.private_chat.add_lulu}</button>
             )}
           </>
         ) : (
