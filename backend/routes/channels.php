@@ -13,3 +13,9 @@ Broadcast::channel('chat', function ($user) {
         'is_bot'   => (bool) $user->is_bot,
     ];
 });
+
+Broadcast::channel('private-chat.{chatId}', function ($user, $chatId) {
+    return \App\Modules\PrivateChat\Models\PrivateChatMember::where('chat_id', $chatId)
+        ->where('user_id', $user->id)
+        ->exists();
+});

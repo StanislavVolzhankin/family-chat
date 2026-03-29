@@ -59,6 +59,13 @@
   "online_users": {
     "title": "Online"
   },
+  "private_chat": {
+    "create": "Create private chat",
+    "open": "Open private chat",
+    "close": "Close",
+    "add_lulu": "+ Lulu",
+    "remove_lulu": "Remove Lulu"
+  },
   "nav": {
     "chat": "Chat",
     "users": "User Management",

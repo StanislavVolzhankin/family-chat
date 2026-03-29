@@ -59,6 +59,13 @@
   "online_users": {
     "title": "В сети"
   },
+  "private_chat": {
+    "create": "Создать приватный чат",
+    "open": "Открыть приватный чат",
+    "close": "Закрыть",
+    "add_lulu": "+ Lulu",
+    "remove_lulu": "Удалить Lulu"
+  },
   "nav": {
     "chat": "Чат",
     "users": "Менеджмент пользователей",

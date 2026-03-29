@@ -118,5 +118,5 @@ export function useWebSocket(token, onMessage) {
     }
   }, [token, connect, disconnect])
 
-  return { status, attempt, maxAttempts: MAX_ATTEMPTS, onlineUsers }
+  return { status, attempt, maxAttempts: MAX_ATTEMPTS, onlineUsers, echoRef }
 }

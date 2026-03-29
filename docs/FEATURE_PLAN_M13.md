@@ -39,6 +39,16 @@
 - Иконка отображается только пока пользователь онлайн (нет пользователя онлайн — нет иконки)
 - Счётчика непрочитанных нет
 - "Закрыть" = закрыть всплывающее окно; чат и история сохраняются
+- Автооткрытие: если окно чата закрыто и приходит входящее сообщение — окно открывается автоматически
+
+### Кнопки добавить/удалить Lulu (M13.6)
+
+- Кнопки находятся в шапке окна приватного чата
+- Добавить может любой участник чата
+- Если Lulu НЕ в чате: в шапке рядом с именем партнёра отображается кнопка "+ Lulu"
+- Если Lulu В чате: рядом с именем партнёра отображается "Lulu 🤖" и кнопка удалить (×)
+- Повторно добавить Lulu нельзя (кнопка "+ Lulu" не отображается если она уже есть)
+- В шапке `partnerName` = только люди (без Lulu); Lulu отображается отдельно
 
 ### Правила сообщений
 
@@ -62,16 +72,93 @@
 
 ---
 
+## Архитектурное решение (Architect Agent)
+
+### Схема БД
+
+**`private_chats`** — метаданные чата:
+- `id` bigint PK
+- `created_at` timestamp
+
+**`private_chat_members`** — состав участников:
+- `id` bigint PK
+- `chat_id` bigint FK → private_chats.id (CASCADE DELETE)
+- `user_id` bigint FK → users.id (CASCADE DELETE)
+- `joined_at` timestamp DEFAULT now()
+- UNIQUE(chat_id, user_id), INDEX(user_id), INDEX(chat_id)
+
+**`private_messages`** — сообщения (отдельно от `messages` общего чата):
+- `id` bigint PK
+- `chat_id` bigint FK → private_chats.id (CASCADE DELETE)
+- `user_id` bigint FK → users.id (NO DELETE — история остаётся)
+- `content` text NOT NULL
+- `created_at` timestamp
+- INDEX(chat_id, created_at), INDEX(user_id)
+
+### Backend API
+
+Модуль: `app/Modules/PrivateChat/`, маршруты под `middleware('auth.jwt')`.
+
+| Метод | URL | Описание |
+|-------|-----|----------|
+| POST | `/api/private-chats` | Создать или получить чат с `other_user_id` |
+| GET | `/api/private-chats` | Список всех чатов текущего пользователя |
+| GET | `/api/private-chats/{chatId}/messages` | История (30 дней), 403 для посторонних |
+| POST | `/api/private-chats/{chatId}/messages` | Отправить сообщение, 403 для посторонних |
+| POST | `/api/private-chats/{chatId}/members` | Добавить Lulu в чат |
+| DELETE | `/api/private-chats/{chatId}/members/lulu` | Удалить Lulu из чата |
+
+### WebSocket
+
+- Канал: `private-chat.{chatId}` (Private Channel)
+- Событие: `PrivateMessageSent` → broadcast as `new_private_message`
+- Payload: `{ id, chat_id, user_id, username, is_bot, content, created_at }`
+- Авторизация через `routes/channels.php` + уже настроенный `/api/broadcasting/auth`
+
+### Lulu логика
+
+- **Режим "всегда"**: в чате только `auth_user` + Lulu (2 участника) → Lulu отвечает на любое сообщение
+- **Режим "@Lulu"**: в чате 3+ участника → Lulu отвечает только при наличии `@{BOT_NAME}` в тексте
+- Новый Job: `ProcessPrivateBotReply` (по образцу `ProcessBotReply`, но с `chat_id` и `private_messages`)
+- Новый метод: `BotService::replyToPrivateChat(string $question, int $botUserId, int $chatId)`
+
+### Frontend компоненты
+
+**Новые:**
+- `PrivateChatWindow.jsx` — всплывающее окно чата
+- `UserContextMenu.jsx` — контекстное меню при правом клике
+- `usePrivateChat.js` — хук для подписки на private channel
+
+**Изменённые:**
+- `OnlineUsers.jsx` — иконка чата, правый клик, контекстное меню
+- `ChatPage.jsx` — состояние `openChats`, `existingChats`, загрузка `getPrivateChats()`
+- `api.js` — 6 новых функций для private chats
+
+### Порядок реализации
+
+M13.1 (БД) → M13.2 (API) → M13.3 (WebSocket) → M13.7 (Lulu) → M13.4 (UI сайдбар) → M13.5 (окно чата) → M13.6 (кнопки Lulu) → M13.8 (локализация) → M13.9 (тесты)
+
+### Антиспам
+
+Ключ `antispam:user:{userId}` — общий для публичного и приватного чата (суммарно не более 1 сообщения/сек).
+
+### Retention
+
+Добавить аналог `PruneOldMessages` для `private_messages` (30 дней). Расширить существующий Command или создать отдельный.
+
+---
+
 ## Милстоуны
 
 | # | Задача | Область | Сложность |
 |---|--------|---------|-----------|
-| M13.1 | БД: таблица `private_chats`, `private_chat_members`, `private_messages` | Backend + DB | Высокая |
-| M13.2 | API: создание чата, получение истории, авторизация участников | Backend | Высокая |
-| M13.3 | WebSocket: приватный канал, доставка сообщений участникам | Backend | Высокая |
-| M13.4 | UI: правый клик → создать чат, иконка у имени в сайдбаре | Frontend | Средняя |
-| M13.5 | UI: всплывающее окно чата, форма отправки, история | Frontend | Средняя |
-| M13.6 | UI: кнопки добавить/удалить Lulu внутри чата | Frontend | Средняя |
-| M13.7 | Lulu: логика ответа (всегда / только по @Lulu) в зависимости от состава чата | Backend | Средняя |
-| M13.8 | Локализация RU/EN | Frontend | Низкая |
-| M13.9 | Тесты | Backend + Frontend | Высокая |
+| M13.1 | БД: таблица `private_chats`, `private_chat_members`, `private_messages` | Backend + DB | Высокая | ✅ done |
+| M13.2 | API: создание чата, получение истории, авторизация участников | Backend | Высокая | ✅ done |
+| M13.3 | WebSocket: приватный канал, доставка сообщений участникам | Backend | Высокая | ✅ done |
+| M13.4 | UI: правый клик → создать чат, иконка у имени в сайдбаре | Frontend | Средняя | ✅ done |
+| M13.5 | UI: всплывающее окно чата, форма отправки, история | Frontend | Средняя | ✅ done |
+| M13.6 | UI: кнопки добавить/удалить Lulu внутри чата | Frontend | Средняя | ✅ done |
+| M13.7 | Lulu: логика ответа (всегда / только по @Lulu) в зависимости от состава чата | Backend | Средняя | ✅ done |
+| M13.8 | Локализация RU/EN | Frontend | Низкая | ✅ done |
+| M13.9 | Тесты | Backend + Frontend | Высокая | ✅ done |
+| M13.10 | UI: автооткрытие окна чата при входящем сообщении | Frontend | Низкая | ✅ done |
