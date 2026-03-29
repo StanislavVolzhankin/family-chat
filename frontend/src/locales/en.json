@@ -59,6 +59,11 @@
   "online_users": {
     "title": "Online"
   },
+  "private_chat": {
+    "create": "Create private chat",
+    "open": "Open private chat",
+    "close": "Close"
+  },
   "nav": {
     "chat": "Chat",
     "users": "User Management",

@@ -100,3 +100,74 @@ export async function sendMessage(content) {
 
   return data.data
 }
+
+export async function getPrivateChats() {
+  const response = await fetch(`${BASE_URL}/api/private-chats`, {
+    headers: authHeaders(),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function getOrCreatePrivateChat(otherUserId) {
+  const response = await fetch(`${BASE_URL}/api/private-chats`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ other_user_id: otherUserId }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function getOrCreatePrivateChatByUsername(username) {
+  const response = await fetch(`${BASE_URL}/api/private-chats`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ other_username: username }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function getPrivateChatMessages(chatId) {
+  const response = await fetch(`${BASE_URL}/api/private-chats/${chatId}/messages`, {
+    headers: authHeaders(),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function sendPrivateMessage(chatId, content) {
+  const response = await fetch(`${BASE_URL}/api/private-chats/${chatId}/messages`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ content }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function addLuluToChat(chatId) {
+  const response = await fetch(`${BASE_URL}/api/private-chats/${chatId}/members`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}
+
+export async function removeLuluFromChat(chatId) {
+  const response = await fetch(`${BASE_URL}/api/private-chats/${chatId}/members/lulu`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error ?? 'server_error')
+  return data.data
+}

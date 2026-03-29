@@ -3,6 +3,7 @@
 namespace App\Modules\Chat\Commands;
 
 use App\Modules\Chat\Models\Message;
+use App\Modules\PrivateChat\Models\PrivateMessage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
@@ -23,7 +24,17 @@ class CleanupOldMessages extends Command
             $deleted += $count;
         } while ($count === 100);
 
-        $this->info("Deleted {$deleted} old messages.");
+        $this->info("Deleted {$deleted} old public messages.");
+
+        $deleted = 0;
+        do {
+            $count = PrivateMessage::where('created_at', '<', $cutoff)
+                ->limit(100)
+                ->delete();
+            $deleted += $count;
+        } while ($count === 100);
+
+        $this->info("Deleted {$deleted} old private messages.");
 
         return Command::SUCCESS;
     }

@@ -10,5 +10,6 @@ class ModuleServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(base_path('app/Modules/Auth/Routes/auth.php'));
         $this->loadRoutesFrom(base_path('app/Modules/Chat/Routes/chat.php'));
+        $this->loadRoutesFrom(base_path('app/Modules/PrivateChat/Routes/private_chat.php'));
     }
 }
