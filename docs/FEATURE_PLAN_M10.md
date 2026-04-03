@@ -133,7 +133,7 @@ Amvera CLI существует, но в **beta** — команды stop/start 
 | Стратегия миграций (entrypoint script) | ✅ Startup script в проекте web |
 | Параметры heartbeat для Reverb | ✅ Включить в config/reverb.php |
 | Vercel — есть аккаунт? | ✅ Есть |
-| Автодеплой по push в main или вручную | ✅ По push в main |
+| Автодеплой по push в main или вручную | ✅ По merge в develop (Amvera слушает develop) |
 | Stop/start всех сервисов одной командой | ✅ Вручную через UI Amvera |
 | Структура amvera.yml (поля, примеры) | ❌ Документация недоступна, выяснить при настройке |
 
@@ -147,7 +147,7 @@ Amvera CLI существует, но в **beta** — команды stop/start 
 
 ## Rollback
 
-`git revert <commit>` + push в `main` → автодеплой предыдущей версии на Amvera и Vercel.
+`git revert <commit>` + push в `develop` → автодеплой предыдущей версии на Amvera и Vercel.
 
 ---
 
