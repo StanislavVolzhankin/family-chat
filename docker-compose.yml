@@ -1,0 +1,125 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - BROADCAST_CONNECTION=reverb
+      - REVERB_APP_ID=family-chat
+      - REVERB_APP_KEY=family-chat-key
+      - REVERB_APP_SECRET=family-chat-secret
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+    depends_on:
+      db:
+        condition: service_healthy
+
+  reverb:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - BROADCAST_CONNECTION=reverb
+      - REVERB_APP_ID=family-chat
+      - REVERB_APP_KEY=family-chat-key
+      - REVERB_APP_SECRET=family-chat-secret
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+    depends_on:
+      db:
+        condition: service_healthy
+
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: php artisan queue:work --sleep=1 --tries=3
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - BROADCAST_CONNECTION=reverb
+      - REVERB_APP_ID=family-chat
+      - REVERB_APP_KEY=family-chat-key
+      - REVERB_APP_SECRET=family-chat-secret
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - REVERB_SCHEME=http
+      - QUEUE_CONNECTION=database
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB:-family_chat}
+      - DB_USERNAME=${POSTGRES_USER:-family_chat_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-secret}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-family_chat}
+      - POSTGRES_USER=${POSTGRES_USER:-family_chat_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-family_chat_user} -d ${POSTGRES_DB:-family_chat}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

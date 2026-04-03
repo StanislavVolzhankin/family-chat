@@ -1,0 +1,78 @@
+{
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign In",
+    "errors": {
+      "invalid_credentials": "Invalid username or password",
+      "user_inactive": "Your account is disabled"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "char_count": "{{count}}/150",
+    "status": {
+      "online": "Online",
+      "connecting": "Connecting...",
+      "offline": "Reconnecting… attempt {{attempt}} of {{max}}",
+      "failed": "Chat unavailable. Please refresh the page."
+    },
+    "new_message": "↓ new message",
+    "errors": {
+      "rate_limit_exceeded": "Too fast, wait a second",
+      "content_too_long": "Message too long (max 150 characters)",
+      "content_empty": "Cannot send an empty message",
+      "send_failed": "Failed to send message"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "create": "Create User",
+    "username": "Username",
+    "password": "Password",
+    "new_password": "New password",
+    "role": "Role",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "change_password": "Change Password",
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions",
+    "errors": {
+      "username_taken": "Username is already taken",
+      "username_reserved": "This username is reserved",
+      "user_not_found": "User not found",
+      "cannot_modify_parent": "Cannot modify administrator",
+      "cannot_deactivate_self": "Cannot deactivate your own account",
+      "password_too_short": "Password must be at least 6 characters"
+    }
+  },
+  "bot": {
+    "unavailable": "Lulu is temporarily unavailable. Please try again later.",
+    "badge": "bot"
+  },
+  "online_users": {
+    "title": "Online"
+  },
+  "private_chat": {
+    "create": "Create private chat",
+    "open": "Open private chat",
+    "close": "Close",
+    "add_lulu": "+ Lulu",
+    "remove_lulu": "Remove Lulu"
+  },
+  "nav": {
+    "chat": "Chat",
+    "users": "User Management",
+    "logout": "Log Out"
+  },
+  "logout": "Log Out",
+  "errors": {
+    "service_unavailable": "Service temporarily unavailable, please try again later"
+  }
+}

@@ -9,7 +9,7 @@ Family Chat — веб‑приложение для семейного текс
 - Database: PostgreSQL.
 - Realtime: WebSocket для доставки новых сообщений, HTTP API для аутентификации и загрузки истории.
 
-Архитектура строится как модульный монолит с явными доменными модулями (Auth/Users, Chat/Messages, Localization), спроектированными так, чтобы в будущем их можно было выделить в отдельные микросервисы.
+Архитектура строится как модульный монолит с явными доменными модулями (Auth/Users, Chat/Messages, Bot, Localization), спроектированными так, чтобы в будущем их можно было выделить в отдельные микросервисы.
 
 Цели архитектуры:
 
@@ -27,6 +27,7 @@ Family Chat — веб‑приложение для семейного текс
 
 - Пользовательский интерфейс (RU/EN), управление состоянием приложения.
 - Экран логина, экран чата, отображение истории сообщений.
+- Навигационный хедер (`AppHeader`): меню для `parent` (Чат, Менеджмент пользователей), имя пользователя, Logout. Дети хедер видят, но без пунктов меню.
 - Взаимодействие с backend по HTTP (REST API) и по WebSocket.
 
 Взаимодействие:
@@ -59,6 +60,7 @@ Family Chat — веб‑приложение для семейного текс
   - Бизнес‑логика (валидация, правила, антиспам).
 - Infrastructure:
   - Доступ к БД, взаимодействие с WebSocket‑слоем.
+  - Queue worker (отдельный процесс) для асинхронной обработки задач (ответы бота).
 
 ### 2.3 WebSocket Gateway
 
@@ -103,6 +105,7 @@ Family Chat — веб‑приложение для семейного текс
   - password_hash
   - role (enum: parent, child)
   - is_active (bool)
+  - is_bot (bool, default false)
   - created_at, updated_at
 
 Основные операции (HTTP API):
@@ -135,7 +138,7 @@ Family Chat — веб‑приложение для семейного текс
 - Message
   - id (PK)
   - user_id (FK → users.id)
-  - content (varchar(150))
+  - content (text)
   - created_at (timestamp)
 
 Основные операции:
@@ -147,7 +150,7 @@ Family Chat — веб‑приложение для семейного текс
   - Client → Server:
     - send_message { content }
   - Server → Clients:
-    - new_message { id, user_id, username, content, created_at }
+    - new_message { id, user_id, username, is_bot, content, created_at }
   - Server → Client (ошибки):
     - error { code, message }
 
@@ -156,6 +159,53 @@ Family Chat — веб‑приложение для семейного текс
 - Максимальная длина content — 150 символов (включая эмодзи).
 - Антиспам: один пользователь не может отправить более 1 сообщения в секунду.
 - Retention: сообщения старше 30 дней удаляются ежесуточным job’ом.
+
+### 3.4 Bot Module
+
+Ответственность:
+
+- Обнаружение обращений к боту в сообщениях (`@{BOT_NAME}`).
+- Отправка запроса к LLM-провайдеру и получение ответа.
+- Сохранение ответа бота как сообщения в БД и broadcast всем участникам чата.
+- Обработка ошибок недоступности LLM (локализованное сообщение об ошибке в чат).
+
+Конфигурация:
+
+- `BOT_NAME` — имя бота (например, `Lulu`), задаётся в `.env`, хранится в `config/bot.php`.
+- `LLM_PROVIDER` — активный провайдер (`gemini` | `openai`), задаётся в `.env`.
+- `GEMINI_API_KEY` / `GEMINI_MODEL` — ключ и модель Google Gemini.
+- `OPENAI_API_KEY` / `OPENAI_MODEL` — ключ и модель OpenAI (опционально).
+
+LLM Abstraction:
+
+- `App\Modules\Bot\Contracts\LlmProvider` — интерфейс с методом `chat(string $question): string`.
+- Конкретные реализации: `GeminiProvider`, `OpenAiProvider`.
+- Биндинг провайдера через `AppServiceProvider` на основе `config('bot.llm_provider')`.
+- Переключение провайдера — только через `.env`, без изменения кода.
+
+Сущность Lulu в БД:
+
+- Lulu хранится как специальная запись в таблице `users` (создаётся при первом запуске / seeder).
+- Поле `is_bot = true` идентифицирует бота.
+- `password_hash` — случайная строка (логин невозможен).
+- `role = child`, `is_active = true`.
+- Username совпадает с `BOT_NAME` из конфига.
+
+Правила:
+
+- Нельзя создать пользователя с именем бота через User Management API.
+- Антиспам применяется к пользователю, отправившему запрос (не к ответам бота).
+- Ответ бота сохраняется в `messages` с `user_id = Lulu.id`.
+
+Флоу обработки:
+
+1. `MessageController::store()` сохраняет сообщение пользователя в БД, broadcast всем.
+2. `BotService::dispatchIfNeeded($content)` проверяет наличие `@{BOT_NAME}`.
+3. Если обнаружено — диспатчит `ProcessBotReply` job в Queue.
+4. Queue worker асинхронно вызывает `BotService::reply()`.
+5. `BotService::reply()` обращается к `LlmProvider::chat()`.
+6. Ответ сохраняется как сообщение от Lulu, рассылается всем как `new_message`.
+7. При ошибке LLM — Lulu отправляет локализованное сообщение об ошибке.
 
 ### 3.3 Localization Module
 
@@ -224,7 +274,7 @@ Family Chat — веб‑приложение для семейного текс
      - Пытается сохранить Message в БД.
      - При успехе:
        - Рассылает всем активным соединениям событие:
-         - new_message { id, user_id, username, content, created_at }.
+         - new_message { id, user_id, username, is_bot, content, created_at }.
      - При ошибке (валидация, БД, антиспам):
        - Отправляет текущему клиенту:
          - error { code, message }.
@@ -283,6 +333,7 @@ Family Chat — веб‑приложение для семейного текс
 - password_hash (varchar)
 - role (enum/string: parent, child)
 - is_active (boolean)
+- is_bot (boolean, default false)
 - created_at (timestamp)
 - updated_at (timestamp)
 
@@ -291,12 +342,13 @@ Family Chat — веб‑приложение для семейного текс
 - UNIQUE(username)
 - INDEX(role)
 - INDEX(is_active)
+- INDEX(is_bot)
 
 ### 6.2 Messages Table
 
 - id (PK, integer/bigint, auto‑increment)
 - user_id (FK → users.id)
-- content (varchar(150))
+- content (text)
 - created_at (timestamp)
 
 Индексы:
@@ -332,8 +384,9 @@ Family Chat — веб‑приложение для семейного текс
 
 ## 8. Deployment Overview
 
-- Backend (Laravel API + WebSocket компонент) и PostgreSQL размещаются на выбранном бесплатном облачном сервисе.
-- Frontend (React build) деплоится как статический сайт (на том же или другом сервисе).
+- Backend (Laravel API + WebSocket компонент) и PostgreSQL размещаются на **Fly.io** (бесплатный tier, Docker-based).
+- Frontend (React build) деплоится как статический сайт на **Vercel** (бесплатно).
+- Деплой построен на Docker: backend упакован в контейнер, конфигурация через `fly.toml`.
 - В первой итерации:
   - Все backend‑модули (Auth/Users, Chat/Messages, Localization, WebSocket‑gateway) живут в одном Laravel‑приложении (модульный монолит).
 - В дальнейшем возможно:
@@ -352,9 +405,6 @@ Family Chat — веб‑приложение для семейного текс
 - Новые роли:
   - Дополнительные взрослые.
   - Модераторы.
-
-- Чат‑бот ИИ:
-  - Отдельный модуль/сервис, который выступает как «виртуальный пользователь» в одной или нескольких комнатах.
 
 - Безопасность:
   - Включение шифрования (HTTPS/WSS) без изменения доменной логики.
