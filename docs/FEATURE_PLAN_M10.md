@@ -75,7 +75,7 @@ amvera-<имя-проекта>-run-<имя-пользователя>
 - Добавляются через UI Amvera (Variables / Secrets) — **в каждом из 3 проектов отдельно**
 - Доступны **только в runtime**, не при билде
 - Секреты хранятся зашифрованно (отдельное хранилище)
-- Нужные переменные: `APP_KEY`, `DB_*`, `JWT_SECRET`, `GEMINI_API_KEY`, `BOT_NAME`, `REVERB_*`
+- Нужные переменные: `APP_KEY`, `DB_*`, `JWT_SECRET`, `GEMINI_API_KEY`, `BOT_NAME`, `REVERB_*`, `FRONTEND_URL`, `APP_MODE`
 
 ---
 
@@ -159,8 +159,8 @@ Amvera CLI существует, но в **beta** — команды stop/start 
 | M10.2 | Startup script (entrypoint.sh): migrate + config/route/view cache + старт nginx | Backend | Средняя |
 | M10.3 | amvera.yml для каждого проекта (web, reverb, queue) | DevOps | Средняя |
 | M10.4 | Reverb heartbeat: включить в config/reverb.php | Backend | Низкая |
-| M10.5 | CORS: добавить Vercel-домен в config/cors.php | Backend | Низкая |
-| M10.6 | Amvera: создать PostgreSQL + 3 проекта, подключить GitHub, выставить env vars | DevOps | Высокая |
+| M10.5 | CORS: config/cors.php создан, allowed_origins читает из FRONTEND_URL — добавить FRONTEND_URL=https://... в env vars Amvera после получения Vercel-домена | Backend | Низкая |
+| M10.6 | Amvera: создать PostgreSQL + 3 проекта, подключить GitHub, выставить env vars (включая APP_MODE=web/reverb/queue для каждого проекта) | DevOps | Высокая |
 | M10.7 | Amvera: настроить Cron Job для scheduler | DevOps | Низкая |
 | M10.8 | Vercel: подключить репо, выставить VITE_API_URL + VITE_WS_URL | DevOps | Низкая |
 | M10.9 | E2E проверка: логин, чат, бот, WebSocket, приватные чаты | QA | Средняя |
