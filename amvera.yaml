@@ -1,9 +1,0 @@
-meta:
-  environment: docker
-
-build:
-  dockerfile: backend/Dockerfile.prod
-
-run:
-  command: /entrypoint.sh
-  containerPort: 8000
